@@ -117,8 +117,8 @@ export default function LandingPage({ onGetStarted, onLogin, theme, toggleTheme 
  <div className="relative min-h-screen bg-border-subtle text-text-main overflow-hidden font-sans selection:bg-emerald-500 selection:text-white">
  
  {/* GLOWING ORBS BACKGROUND */}
- <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-100 rounded-full blur-[120px] pointer-events-none"></div>
- <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-blue-100 rounded-full blur-[150px] pointer-events-none"></div>
+ <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+ <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-cyan-500/10 dark:bg-cyan-500/5 rounded-full blur-[150px] pointer-events-none"></div>
  
  {/* FLOATING HEADER NAV */}
  <header className="sticky top-0 z-50 border-b border-border-main glass-panel/70 backdrop-blur-xl">
@@ -194,7 +194,7 @@ export default function LandingPage({ onGetStarted, onLogin, theme, toggleTheme 
  initial={{ opacity: 0, scale: 0.95 }}
  animate={{ opacity: 1, scale: 1 }}
  transition={{ delay: 0.15 }}
- className="inline-flex items-center gap-2 bg-emerald-100 border border-emerald-500/20 text-emerald-600 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-wider font-mono shadow-sm shadow-emerald-500/10"
+ className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 text-emerald-600 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-wider font-mono shadow-sm shadow-emerald-500/10"
  >
  <Zap size={12} className="text-emerald-600 animate-pulse" /> Self-Hosted Budget & Diet AI Engine
  </motion.div>
@@ -402,8 +402,8 @@ export default function LandingPage({ onGetStarted, onLogin, theme, toggleTheme 
  whileHover={{ y: -6 }}
  className="md:col-span-2 glass-panel border border-border-main p-8 rounded-3xl relative overflow-hidden group"
  >
- <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-100 transition-colors duration-500"></div>
- <div className="w-12 h-12 rounded-xl bg-emerald-100 border border-emerald-500/20 flex items-center justify-center text-emerald-600 mb-6">
+ <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-accent/20 transition-colors duration-500"></div>
+ <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-emerald-600 mb-6">
  <Brain size={22} />
  </div>
  <h3 className="text-xl font-bold text-text-main mb-3">Natural Language Parsing Engine</h3>
@@ -421,7 +421,7 @@ export default function LandingPage({ onGetStarted, onLogin, theme, toggleTheme 
  whileHover={{ y: -6 }}
  className="glass-panel border border-border-main p-8 rounded-3xl relative overflow-hidden group"
  >
- <div className="w-12 h-12 rounded-xl bg-blue-100 border border-cyan-500/20 flex items-center justify-center text-accent mb-6">
+ <div className="w-12 h-12 rounded-xl bg-accent/10 border border-cyan-500/20 flex items-center justify-center text-accent mb-6">
  <Lock size={22} />
  </div>
  <h3 className="text-xl font-bold text-text-main mb-3">100% Private Ownership</h3>
@@ -449,8 +449,8 @@ export default function LandingPage({ onGetStarted, onLogin, theme, toggleTheme 
  whileHover={{ y: -6 }}
  className="md:col-span-2 glass-panel border border-border-main p-8 rounded-3xl relative overflow-hidden group"
  >
- <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/5 rounded-full blur-3xl group-hover:bg-blue-100 transition-colors duration-500"></div>
- <div className="w-12 h-12 rounded-xl bg-blue-100 border border-cyan-500/20 flex items-center justify-center text-accent mb-6">
+ <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/5 rounded-full blur-3xl group-hover:bg-accent/10 transition-colors duration-500"></div>
+ <div className="w-12 h-12 rounded-xl bg-accent/10 border border-cyan-500/20 flex items-center justify-center text-accent mb-6">
  <Utensils size={22} />
  </div>
  <h3 className="text-xl font-bold text-text-main mb-3">Protein and Caloric Ring Analytics</h3>
@@ -479,15 +479,15 @@ export default function LandingPage({ onGetStarted, onLogin, theme, toggleTheme 
  </p>
  <ul className="space-y-3 text-xs md:text-sm text-text-secondary font-mono">
  <li className="flex items-center gap-2.5">
- <span className="w-5 h-5 bg-emerald-100 border border-emerald-500/30 rounded-lg flex items-center justify-center text-emerald-600 text-[10px]">1</span>
+ <span className="w-5 h-5 bg-accent/10 border border-emerald-500/30 rounded-lg flex items-center justify-center text-emerald-600 text-[10px]">1</span>
  Auto-correlate meal costs with nutrition datasets
  </li>
  <li className="flex items-center gap-2.5">
- <span className="w-5 h-5 bg-emerald-100 border border-emerald-500/30 rounded-lg flex items-center justify-center text-emerald-600 text-[10px]">2</span>
+ <span className="w-5 h-5 bg-accent/10 border border-emerald-500/30 rounded-lg flex items-center justify-center text-emerald-600 text-[10px]">2</span>
  Filter out expensive low-nutrition cheat days
  </li>
  <li className="flex items-center gap-2.5">
- <span className="w-5 h-5 bg-emerald-100 border border-emerald-500/30 rounded-lg flex items-center justify-center text-emerald-600 text-[10px]">3</span>
+ <span className="w-5 h-5 bg-accent/10 border border-emerald-500/30 rounded-lg flex items-center justify-center text-emerald-600 text-[10px]">3</span>
  Track fitness accomplishments with budget awareness
  </li>
  </ul>
