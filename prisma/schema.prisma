@@ -15,6 +15,8 @@ model Profile {
   monthly_budget     Float?    @default(30000)
   calorie_goal       Int?      @default(2200)
   protein_goal       Int?      @default(100)
+  base_currency      String    @default("INR")
+  target_weight      Float?
   created_at         DateTime  @default(now())
 
   transactions       Transaction[]
@@ -24,39 +26,47 @@ model Profile {
 }
 
 model Transaction {
-  id         String   @id @default(cuid())
-  profile_id String   @db.Uuid
-  amount     Float
-  category   String
-  note       String?
-  type       String   // "expense" or "income"
-  date       DateTime @default(now())
-  created_at DateTime @default(now())
+  id              String   @id @default(cuid())
+  profile_id      String   @db.Uuid
+  amount          Float
+  currency        String   @default("INR")
+  category        String
+  note            String?
+  type            String   // "expense" or "income"
+  payment_method  String?
+  merchant        String?
+  is_subscription Boolean  @default(false)
+  date            DateTime @default(now())
+  created_at      DateTime @default(now())
 
-  embedding  Unsupported("vector(768)")?
+  embedding       Unsupported("vector(768)")?
 
-  profile    Profile  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  profile         Profile  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
 
   @@map("transactions")
 }
 
 model Meal {
-  id           String   @id @default(cuid())
-  profile_id   String   @db.Uuid
-  name         String
-  calories     Int
-  protein      Int
-  carbs        Int
-  fat          Int
-  fiber        Int
-  health_score Int
-  meal_type    String
-  date         DateTime @default(now())
-  created_at   DateTime @default(now())
+  id             String   @id @default(cuid())
+  profile_id     String   @db.Uuid
+  name           String
+  calories       Int
+  protein        Int
+  carbs          Int
+  fat            Int
+  fiber          Int
+  health_score   Int
+  meal_type      String
+  ingredients    String[]
+  cuisine        String?
+  portion_size   String?
+  is_home_cooked Boolean  @default(false)
+  date           DateTime @default(now())
+  created_at     DateTime @default(now())
 
-  embedding    Unsupported("vector(768)")?
+  embedding      Unsupported("vector(768)")?
 
-  profile      Profile  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  profile        Profile  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
 
   @@map("meals")
 }

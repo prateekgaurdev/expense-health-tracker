@@ -77,6 +77,10 @@ async function parseMessageCore(message: string) {
     - Recognize k / K as thousands (e.g. 1.5k = 1500).
     - Recognize l / L / lakh as lakhs (e.g. 2l = 200000).
     - Recognize rs, rupees, ₹, RS.
+    
+    Extraction Details:
+    - For expenses, extract the payment_method (e.g., 'UPI', 'Credit Card', 'Cash') if mentioned, the specific merchant (e.g., 'Swiggy', 'Amazon', 'Uber'), and check if it's a recurring subscription (is_subscription). Also extract currency (default INR).
+    - For meals, try to identify the main ingredients (array), the cuisine (e.g., 'Indian', 'Italian'), the portion_size (e.g., '1 plate', '500g'), and whether it appears to be home cooked (is_home_cooked).
 
     Nutrition Detection:
     - If the message refers to eating, ordering food, Swiggy, Zomato, groceries that are directly meals, or specific dishes (e.g. "lunch 2 eggs", "swiggy 420 dinner"), detect it as a 'meal' or 'both' (if an expense amount is present).
@@ -101,12 +105,16 @@ async function parseMessageCore(message: string) {
         description: "Extracted transaction details if type is expense, income, or both.",
         properties: {
           amount: { type: Type.NUMBER, description: "Numeric amount in Rupees. Do not include currency symbols." },
+          currency: { type: Type.STRING, description: "Detected currency, default to INR." },
           category: { 
             type: Type.STRING, 
             description: "The best category. Try to use common ones like travel, food, groceries, clothes, rent, bills, luxuries, investments, health, education. If none fit well, create a suitable concise new category name in lowercase." 
           },
           note: { type: Type.STRING, description: "Descriptive clean note (e.g. 'ola cab to office', 'myntra shirt', 'swiggy dinner')." },
           type: { type: Type.STRING, description: "Either 'expense' or 'income'." },
+          payment_method: { type: Type.STRING, description: "e.g. UPI, Cash, Credit Card", nullable: true },
+          merchant: { type: Type.STRING, description: "e.g. Swiggy, Amazon, Uber", nullable: true },
+          is_subscription: { type: Type.BOOLEAN, description: "True if recurring bill/subscription" }
         },
         required: ["amount", "category", "note", "type"],
       },
@@ -125,6 +133,10 @@ async function parseMessageCore(message: string) {
             type: Type.STRING, 
             description: "Must be exactly one of: breakfast, lunch, dinner, snack." 
           },
+          ingredients: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Main ingredients detected" },
+          cuisine: { type: Type.STRING, description: "e.g. Indian, Italian, Fast Food", nullable: true },
+          portion_size: { type: Type.STRING, description: "e.g. 1 plate, 500g", nullable: true },
+          is_home_cooked: { type: Type.BOOLEAN, description: "True if home cooked" }
         },
         required: ["name", "calories", "protein", "carbs", "fat", "fiber", "health_score", "meal_type"],
       },
@@ -262,23 +274,24 @@ app.post("/api/telegram-webhook/:userId", async (req: Request, res: Response): P
     const crypto = require('crypto');
     if (result.type === "expense" || result.type === "income" || result.type === "both") {
       if (result.transaction) {
-        const textToEmbed = `${result.transaction.type} of ${result.transaction.amount} in ${result.transaction.category}. Note: ${result.transaction.note}`;
+        const textToEmbed = `${result.transaction.type}: ${result.transaction.amount} on ${result.transaction.category} - ${result.transaction.note}`;
         const embedding = await generateEmbedding(textToEmbed);
         const vectorStr = `[${embedding.join(',')}]`;
-        
-        await prisma.$executeRaw`
-          INSERT INTO "transactions" (id, profile_id, amount, category, note, type, date, created_at, embedding)
-          VALUES (
-            ${crypto.randomUUID()}, 
-            ${userId}::uuid, 
-            ${result.transaction.amount}, 
-            ${result.transaction.category}, 
-            ${result.transaction.note}, 
-            ${result.transaction.type}, 
-            now(), now(), 
-            ${vectorStr}::vector
-          )
-        `;
+
+        const txn = await prisma.transaction.create({
+          data: {
+            profile_id: userId,
+            amount: result.transaction.amount,
+            currency: result.transaction.currency || "INR",
+            category: result.transaction.category,
+            note: result.transaction.note,
+            type: result.transaction.type,
+            payment_method: result.transaction.payment_method || null,
+            merchant: result.transaction.merchant || null,
+            is_subscription: result.transaction.is_subscription || false,
+          }
+        });
+        await prisma.$executeRaw`UPDATE "transactions" SET embedding = ${vectorStr}::vector WHERE id = ${txn.id}`;
       }
     }
 
@@ -288,23 +301,24 @@ app.post("/api/telegram-webhook/:userId", async (req: Request, res: Response): P
         const embedding = await generateEmbedding(textToEmbed);
         const vectorStr = `[${embedding.join(',')}]`;
 
-        await prisma.$executeRaw`
-          INSERT INTO "meals" (id, profile_id, name, calories, protein, carbs, fat, fiber, health_score, meal_type, date, created_at, embedding)
-          VALUES (
-            ${crypto.randomUUID()}, 
-            ${userId}::uuid, 
-            ${result.meal.name}, 
-            ${result.meal.calories}, 
-            ${result.meal.protein}, 
-            ${result.meal.carbs}, 
-            ${result.meal.fat}, 
-            ${result.meal.fiber}, 
-            ${result.meal.health_score}, 
-            ${result.meal.meal_type}, 
-            now(), now(), 
-            ${vectorStr}::vector
-          )
-        `;
+        const meal = await prisma.meal.create({
+          data: {
+            profile_id: userId,
+            name: result.meal.name,
+            calories: result.meal.calories,
+            protein: result.meal.protein,
+            carbs: result.meal.carbs,
+            fat: result.meal.fat,
+            fiber: result.meal.fiber,
+            health_score: result.meal.health_score,
+            meal_type: result.meal.meal_type,
+            ingredients: result.meal.ingredients || [],
+            cuisine: result.meal.cuisine || null,
+            portion_size: result.meal.portion_size || null,
+            is_home_cooked: result.meal.is_home_cooked || false,
+          }
+        });
+        await prisma.$executeRaw`UPDATE "meals" SET embedding = ${vectorStr}::vector WHERE id = ${meal.id}`;
       }
     }
 

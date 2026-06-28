@@ -179,16 +179,16 @@ export default function AIPhotoScanner({
   };
 
   return (
-    <div id="ai_photo_scanner" className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+    <div id="ai_photo_scanner" className="glass-panel border border-border-main rounded-3xl overflow-hidden shadow-xl">
       {/* Header */}
-      <div className="bg-slate-950 px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+      <div className="bg-border-subtle px-6 py-4 border-b border-border-main flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <Sparkles className="text-emerald-400 w-5 h-5 animate-pulse" />
-          <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
+          <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-text-main">
             AI Photo Scanner
           </h3>
         </div>
-        <span className="text-[10px] text-text-muted font-mono uppercase bg-slate-900 px-2.5 py-1 rounded border border-slate-800 flex items-center gap-1">
+        <span className="text-[10px] text-text-muted font-mono uppercase glass-panel px-2.5 py-1 rounded border border-border-main flex items-center gap-1">
           Powered by Gemini 3.5 Flash
         </span>
       </div>
@@ -200,7 +200,7 @@ export default function AIPhotoScanner({
 
         {/* Scan Type Picker */}
         {!image && (
-          <div className="flex gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className="flex gap-2 bg-border-subtle p-1 rounded-xl border border-border-main">
             {(["auto", "bill", "meal"] as const).map((type) => (
               <button
                 key={type}
@@ -208,7 +208,7 @@ export default function AIPhotoScanner({
                 className={`flex-1 py-2 text-xs font-mono capitalize font-bold rounded-lg transition ${
                   scanType === type
                     ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                    : "text-text-muted hover:text-slate-300"
+                    : "text-text-muted hover:text-text-main"
                 }`}
               >
                 {type === "auto" ? "⚡ Auto Detect" : type === "bill" ? "🧾 Scan Bill" : "🥗 Scan Meal"}
@@ -223,7 +223,7 @@ export default function AIPhotoScanner({
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-slate-800 hover:border-emerald-500/40 bg-slate-950/40 hover:bg-slate-950/80 p-10 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition group"
+            className="border-2 border-dashed border-border-main hover:border-emerald-500/40 bg-border-subtle/40 hover:bg-border-subtle/80 p-10 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition group"
           >
             <input
               type="file"
@@ -232,10 +232,10 @@ export default function AIPhotoScanner({
               accept="image/*"
               className="hidden"
             />
-            <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-text-muted group-hover:text-emerald-400 group-hover:border-emerald-500/20 mb-4 transition">
+            <div className="w-12 h-12 rounded-full glass-panel border border-border-main flex items-center justify-center text-text-muted group-hover:text-emerald-400 group-hover:border-emerald-500/20 mb-4 transition">
               <Upload className="w-5 h-5" />
             </div>
-            <h4 className="text-xs font-mono font-bold text-slate-300 group-hover:text-white transition">
+            <h4 className="text-xs font-mono font-bold text-text-main group-hover:text-text-main transition">
               Drag & Drop Photo or Click to Browse
             </h4>
             <p className="text-[10px] text-text-muted font-mono mt-1">
@@ -245,7 +245,7 @@ export default function AIPhotoScanner({
         ) : (
           <div className="space-y-4">
             {/* Selected Image Preview */}
-            <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center">
+            <div className="relative aspect-video rounded-2xl overflow-hidden border border-border-main bg-border-subtle flex items-center justify-center">
               <img
                 src={image}
                 alt="Upload Preview"
@@ -255,7 +255,7 @@ export default function AIPhotoScanner({
               {!scanning && !scannedResult && (
                 <button
                   onClick={handleReset}
-                  className="absolute top-3 right-3 bg-slate-950/80 hover:bg-rose-950 hover:text-rose-400 border border-slate-800 hover:border-rose-900/50 text-slate-300 p-2 rounded-xl text-xs font-mono transition cursor-pointer"
+                  className="absolute top-3 right-3 bg-border-subtle/80 hover:bg-rose-950 hover:text-rose-400 border border-border-main hover:border-rose-900/50 text-text-main p-2 rounded-xl text-xs font-mono transition cursor-pointer"
                 >
                   Change Photo
                 </button>
@@ -274,14 +274,14 @@ export default function AIPhotoScanner({
             {!scannedResult && !scanning && (
               <button
                 onClick={handleTriggerScan}
-                className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono font-bold py-3.5 px-4 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10"
+                className="w-full bg-emerald-500 hover:bg-emerald-400 text-bg-main font-mono font-bold py-3.5 px-4 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10"
               >
                 <Sparkles className="w-4 h-4 animate-bounce" /> Analyze Photo with AI
               </button>
             )}
 
             {scanning && (
-              <div className="w-full bg-slate-950 border border-slate-800 py-4 px-4 rounded-xl text-center space-y-3">
+              <div className="w-full bg-border-subtle border border-border-main py-4 px-4 rounded-xl text-center space-y-3">
                 <Loader2 className="w-6 h-6 animate-spin text-emerald-400 mx-auto" />
                 <p className="text-xs font-mono text-emerald-400 animate-pulse">
                   Gemini is examining details & estimating metrics...
@@ -291,14 +291,14 @@ export default function AIPhotoScanner({
 
             {/* Scanned Result Fields Editor Card */}
             {scannedResult && (
-              <div className="bg-slate-950/90 border border-slate-800/80 rounded-2xl p-5 space-y-4 shadow-inner">
-                <div className="flex items-center gap-2 pb-3 border-b border-slate-800/50">
+              <div className="bg-border-subtle/90 border border-border-main/80 rounded-2xl p-5 space-y-4 shadow-inner">
+                <div className="flex items-center gap-2 pb-3 border-b border-border-main/50">
                   {scannedResult.detected_type === "bill" ? (
                     <FileText className="text-amber-400 w-4.5 h-4.5" />
                   ) : (
                     <Utensils className="text-cyan-400 w-4.5 h-4.5" />
                   )}
-                  <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">
+                  <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-text-main">
                     AI Extracted Results ({scannedResult.detected_type === "bill" ? "Bill Details" : "Meal Estimate"})
                   </h4>
                 </div>
@@ -315,7 +315,7 @@ export default function AIPhotoScanner({
                           if (updated.transaction) updated.transaction.merchant = e.target.value;
                           setScannedResult(updated);
                         }}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                        className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                       />
                     </div>
                     <div className="space-y-1">
@@ -328,7 +328,7 @@ export default function AIPhotoScanner({
                           if (updated.transaction) updated.transaction.amount = Number(e.target.value);
                           setScannedResult(updated);
                         }}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                        className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                       />
                     </div>
                     <div className="space-y-1">
@@ -341,7 +341,7 @@ export default function AIPhotoScanner({
                           if (updated.transaction) updated.transaction.date = e.target.value;
                           setScannedResult(updated);
                         }}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                        className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                       />
                     </div>
                     <div className="space-y-1">
@@ -354,7 +354,7 @@ export default function AIPhotoScanner({
                           if (updated.transaction) updated.transaction.category = e.target.value;
                           setScannedResult(updated);
                         }}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                        className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                       />
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-1">
@@ -367,7 +367,7 @@ export default function AIPhotoScanner({
                           if (updated.transaction) updated.transaction.note = e.target.value;
                           setScannedResult(updated);
                         }}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                        className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                       />
                     </div>
                   </div>
@@ -384,7 +384,7 @@ export default function AIPhotoScanner({
                             if (updated.meal) updated.meal.name = e.target.value;
                             setScannedResult(updated);
                           }}
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                          className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                         />
                       </div>
                       <div className="space-y-1">
@@ -397,7 +397,7 @@ export default function AIPhotoScanner({
                             if (updated.meal) updated.meal.calories = Number(e.target.value);
                             setScannedResult(updated);
                           }}
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                          className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                         />
                       </div>
                       <div className="space-y-1">
@@ -410,7 +410,7 @@ export default function AIPhotoScanner({
                             if (updated.meal) updated.meal.protein = Number(e.target.value);
                             setScannedResult(updated);
                           }}
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                          className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                         />
                       </div>
                       <div className="space-y-1">
@@ -423,7 +423,7 @@ export default function AIPhotoScanner({
                             if (updated.meal) updated.meal.carbs = Number(e.target.value);
                             setScannedResult(updated);
                           }}
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                          className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                         />
                       </div>
                       <div className="space-y-1">
@@ -436,7 +436,7 @@ export default function AIPhotoScanner({
                             if (updated.meal) updated.meal.fat = Number(e.target.value);
                             setScannedResult(updated);
                           }}
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                          className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                         />
                       </div>
                       <div className="space-y-1">
@@ -451,7 +451,7 @@ export default function AIPhotoScanner({
                             if (updated.meal) updated.meal.health_score = Number(e.target.value);
                             setScannedResult(updated);
                           }}
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                          className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                         />
                       </div>
                       <div className="space-y-1">
@@ -463,7 +463,7 @@ export default function AIPhotoScanner({
                             if (updated.meal) updated.meal.meal_type = e.target.value as any;
                             setScannedResult(updated);
                           }}
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
+                          className="w-full glass-panel border border-border-main rounded-lg p-2 text-xs font-mono text-text-main focus:outline-none focus:border-emerald-500"
                         >
                           {["breakfast", "lunch", "dinner", "snack"].map((mType) => (
                             <option key={mType} value={mType}>{mType}</option>
@@ -478,13 +478,13 @@ export default function AIPhotoScanner({
                 <div className="flex gap-3 pt-3">
                   <button
                     onClick={handleReset}
-                    className="flex-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 font-mono text-xs py-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 glass-panel hover:bg-slate-800 border border-border-main hover:border-slate-700 text-text-main font-mono text-xs py-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <RefreshCw size={13} /> Reset scanner
                   </button>
                   <button
                     onClick={handleConfirmAdd}
-                    className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono font-extrabold text-xs py-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/10"
+                    className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-bg-main font-mono font-extrabold text-xs py-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/10"
                   >
                     <PlusCircle size={14} /> Confirm & Log Item
                   </button>

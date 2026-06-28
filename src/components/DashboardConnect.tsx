@@ -120,21 +120,33 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
 
   <button
    onClick={async () => {
-     const token = (document.getElementById('bot-token-input') as HTMLInputElement).value;
-     if (!token) return alert('Please enter a bot token');
-     
-     const res = await fetch('/api/save-bot-token', {
-       method: 'POST',
-       headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({ userId: profile.id, botToken: token })
-     });
-     
-     const data = await res.json();
-     if (data.success) {
-       alert('Bot linked successfully! You can now message your bot.');
-       window.location.reload();
-     } else {
-       alert(data.error || 'Failed to link bot');
+     try {
+       const token = (document.getElementById('bot-token-input') as HTMLInputElement).value;
+       if (!token) return alert('Please enter a bot token');
+       
+       const res = await fetch('/api/save-bot-token', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ userId: profile.id, botToken: token })
+       });
+       
+       const textResponse = await res.text();
+       let data;
+       try {
+         data = JSON.parse(textResponse);
+       } catch (e) {
+         throw new Error("Server returned an invalid response (not JSON). It may be down or unreachable.");
+       }
+
+       if (data.success) {
+         alert('Bot linked successfully! You can now message your bot.');
+         window.location.reload();
+       } else {
+         alert(data.error || 'Failed to link bot');
+       }
+     } catch (err: any) {
+       console.error(err);
+       alert("An error occurred: " + err.message);
      }
    }}
    className="w-full bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-medium cursor-pointer shadow-sm hover:shadow active:scale-95"

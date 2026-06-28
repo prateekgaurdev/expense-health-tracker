@@ -33,19 +33,38 @@ export default function DashboardMoney({
  return "₹" + new Intl.NumberFormat("en-IN").format(num);
  };
 
- const mockTransactions = [
- { id: '1', date: '01 Jun', category: 'Income', icon: Briefcase, desc: 'Salary Credited', amount: 145000, type: 'income' },
- { id: '2', date: '02 Jun', category: 'Food', icon: Utensils, desc: 'Swiggy 420 Dinner', amount: 420, type: 'expense' },
- { id: '3', date: '05 Jun', category: 'Travel', icon: Car, desc: 'Ola to Office', amount: 350, type: 'expense' },
- { id: '4', date: '08 Jun', category: 'Shopping', icon: ShoppingBag, desc: '1.5k Myntra Shirt', amount: 1500, type: 'expense' },
- { id: '5', date: '10 Jun', category: 'Utilities', icon: Zap, desc: 'Bescom Electricity Bill', amount: 1280, type: 'expense' },
- ];
+  const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  const netSavings = totalIncome - totalExpense;
+  const savePercentage = totalIncome > 0 ? Math.max(0, Math.round((netSavings / totalIncome) * 100)) : 0;
 
- const burnRates = [
- { name: 'Food & Dining', spent: 4200, cap: 10000, color: 'bg-accent/100' },
- { name: 'Shopping', spent: 6500, cap: 5000, color: 'bg-red-500' },
- { name: 'Travel', spent: 2800, cap: 4000, color: 'bg-emerald-500' },
- ];
+  const getCategoryIcon = (category: string) => {
+    const c = category.toLowerCase();
+    if (c.includes('food') || c.includes('dine') || c.includes('swiggy')) return Utensils;
+    if (c.includes('travel') || c.includes('ola') || c.includes('uber')) return Car;
+    if (c.includes('shop') || c.includes('cloth') || c.includes('amazon')) return ShoppingBag;
+    if (c.includes('bill') || c.includes('util') || c.includes('electricity')) return Zap;
+    if (c.includes('salary') || c.includes('income')) return Briefcase;
+    return Briefcase; // fallback
+  };
+
+  // Group expenses by category for burn rates
+  const expensesByCategory = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((acc, t) => {
+      acc[t.category] = (acc[t.category] || 0) + t.amount;
+      return acc;
+    }, {} as Record<string, number>);
+
+  const burnRates = Object.entries(expensesByCategory)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map((entry, idx) => ({
+      name: entry[0],
+      spent: entry[1],
+      cap: Math.max(1000, entry[1] * 1.5), // dynamic mock cap
+      color: idx === 0 ? 'bg-red-500' : idx === 1 ? 'bg-accent/100' : 'bg-emerald-500'
+    }));
 
  return (
  <motion.div
@@ -80,7 +99,7 @@ export default function DashboardMoney({
  </div>
  <div className="flex items-baseline gap-2">
  <div className="text-3xl font-semibold text-text-main tracking-tight">
- ₹1,45,000
+ {formatINR(totalIncome)}
  </div>
  </div>
  </div>
@@ -96,7 +115,7 @@ export default function DashboardMoney({
  </div>
  <div className="flex items-baseline gap-2">
  <div className="text-3xl font-semibold text-text-main tracking-tight">
- ₹42,350
+ {formatINR(totalExpense)}
  </div>
  </div>
  </div>
@@ -112,9 +131,8 @@ export default function DashboardMoney({
  </div>
  <div className="flex items-baseline gap-2">
  <div className="text-3xl font-semibold text-text-main tracking-tight">
- ₹1,02,650
+ {formatINR(netSavings)}
  </div>
- <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+70.7%</span>
  </div>
  </div>
 
@@ -175,31 +193,42 @@ export default function DashboardMoney({
  </tr>
  </thead>
  <tbody className="divide-y divide-slate-100">
- {mockTransactions.map((txn) => (
- <tr key={txn.id} className="hover:bg-border-subtle/50 transition-colors">
- <td className="py-4 px-6 text-sm text-text-muted whitespace-nowrap">
- {txn.date}
- </td>
- <td className="py-4 px-6 text-sm text-text-main">
- <div className="flex items-center gap-3">
- <div className="p-2 bg-border-subtle rounded-lg text-text-secondary">
- <txn.icon size={16} />
- </div>
- <span className="font-medium">{txn.category}</span>
- </div>
- </td>
- <td className="py-4 px-6 text-sm text-text-secondary">
- {txn.desc}
- </td>
- <td className="py-4 px-6 text-sm text-right whitespace-nowrap">
- {txn.type === 'income' ? (
- <span className="text-emerald-600 font-semibold">{formatINR(txn.amount)}</span>
+ {transactions.length === 0 ? (
+   <tr>
+     <td colSpan={4} className="py-8 px-6 text-center text-text-muted">
+       No transactions yet.
+     </td>
+   </tr>
  ) : (
- <span className="text-text-main font-medium">-{formatINR(txn.amount)}</span>
+   transactions.map((txn) => {
+     const Icon = getCategoryIcon(txn.category);
+     return (
+       <tr key={txn.id} className="hover:bg-border-subtle/50 transition-colors">
+       <td className="py-4 px-6 text-sm text-text-muted whitespace-nowrap">
+       {new Date(txn.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+       </td>
+       <td className="py-4 px-6 text-sm text-text-main">
+       <div className="flex items-center gap-3">
+       <div className="p-2 bg-border-subtle rounded-lg text-text-secondary">
+       <Icon size={16} />
+       </div>
+       <span className="font-medium capitalize">{txn.category}</span>
+       </div>
+       </td>
+       <td className="py-4 px-6 text-sm text-text-secondary">
+       {txn.note}
+       </td>
+       <td className="py-4 px-6 text-sm text-right whitespace-nowrap">
+       {txn.type === 'income' ? (
+       <span className="text-emerald-600 font-semibold">+{formatINR(txn.amount)}</span>
+       ) : (
+       <span className="text-text-main font-medium">-{formatINR(txn.amount)}</span>
+       )}
+       </td>
+       </tr>
+     );
+   })
  )}
- </td>
- </tr>
- ))}
  </tbody>
  </table>
  </div>
@@ -257,13 +286,13 @@ export default function DashboardMoney({
  stroke="#10b981" 
  strokeWidth="12" 
  strokeDasharray="251.2"
- strokeDashoffset="60"
+ strokeDashoffset={251.2 - (251.2 * savePercentage) / 100}
  className="transition-all duration-1000 ease-out"
  strokeLinecap="round"
  />
  </svg>
  <div className="absolute inset-0 flex flex-col items-center justify-center">
- <span className="text-2xl font-bold text-text-main">76%</span>
+ <span className="text-2xl font-bold text-text-main">{savePercentage}%</span>
  <span className="text-xs font-medium text-text-muted">Saved</span>
  </div>
  </div>

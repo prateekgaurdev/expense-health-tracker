@@ -106,6 +106,9 @@ export default function App() {
     if (!supabase) return;
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userName = user?.user_metadata?.name || email.split("@")[0];
+
       // 1. Fetch or create Profile
       let { data: profileData, error: profileErr } = await supabase
         .from("profiles")
@@ -114,22 +117,16 @@ export default function App() {
         .single();
 
       if (profileErr || !profileData) {
-        const { data: { user } } = await supabase.auth.getUser();
-        const userName = user?.user_metadata?.name || email.split("@")[0];
-        
-        const defaultProfile = {
+        const dbProfileInsert = {
           id: userId,
-          email: email,
-          name: userName,
           monthly_budget: 35000,
           calorie_goal: 2200,
           protein_goal: 110,
-          link_code: `FT-${Math.floor(1000 + Math.random() * 9000)}`,
         };
 
         const { data: newProfile, error: createErr } = await supabase
           .from("profiles")
-          .insert([defaultProfile])
+          .insert([dbProfileInsert])
           .select("*")
           .single();
 
@@ -137,7 +134,15 @@ export default function App() {
         profileData = newProfile;
       }
 
-      setProfile(profileData);
+      // Inject UI-only fields that are missing from the Postgres schema
+      const enrichedProfile = {
+        ...profileData,
+        email: email,
+        name: userName,
+        link_code: `FT-${Math.floor(1000 + Math.random() * 9000)}`,
+      };
+
+      setProfile(enrichedProfile);
 
       // 2. Fetch Transactions
       const { data: txnsData } = await supabase
@@ -162,11 +167,14 @@ export default function App() {
     }
   };
 
-  const setupRealtimeSubscriptions = (userId: string) => {
+  const setupRealtimeSubscriptions = async (userId: string) => {
     if (!supabase) return;
 
+    // Clean up existing channels to prevent duplicate subscription errors in React Strict Mode
+    await supabase.removeAllChannels();
+
     supabase
-      .channel("transactions-changes")
+      .channel(`transactions-${userId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "transactions", filter: `profile_id=eq.${userId}` },
@@ -181,7 +189,7 @@ export default function App() {
       .subscribe();
 
     supabase
-      .channel("meals-changes")
+      .channel(`meals-${userId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "meals", filter: `profile_id=eq.${userId}` },
