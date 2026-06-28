@@ -10,11 +10,11 @@ export const saveBotToken = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    let appUrl = process.env.APP_URL || req.headers.origin || "https://track.prateekgaur.in";
+    // Always use the official production URL unless we are absolutely sure it's a valid ngrok/localtunnel
+    let appUrl = "https://track.prateekgaur.in";
     
-    // Telegram webhooks require HTTPS and cannot be localhost.
-    if (appUrl.includes("localhost")) {
-      appUrl = "https://track.prateekgaur.in";
+    if (req.headers.origin && req.headers.origin.includes("loca.lt")) {
+       appUrl = req.headers.origin;
     }
 
     await linkTelegramBot(userId, botToken, appUrl);
