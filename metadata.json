@@ -1,0 +1,6 @@
+{
+  "name": "FinTrack",
+  "description": "Log expenses and meals by texting a Telegram bot. A live terminal-style dashboard tracks your spending, budgets, and nutrition using Gemini AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
