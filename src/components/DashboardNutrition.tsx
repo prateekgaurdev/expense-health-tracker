@@ -15,6 +15,8 @@ interface DashboardNutritionProps {
  meals: Meal[];
  transactions: Transaction[];
  onAddMeal: (m: Meal) => void;
+ onDeleteMeal: (id: string) => void;
+ onUpdateMeal: (id: string, updates: Partial<Meal>) => void;
 }
 
 export default function DashboardNutrition({
@@ -22,6 +24,8 @@ export default function DashboardNutrition({
  meals,
  transactions,
  onAddMeal,
+ onDeleteMeal,
+ onUpdateMeal,
 }: DashboardNutritionProps) {
  const [showAddForm, setShowAddForm] = useState(false);
  const [mealName, setMealName] = useState("");
@@ -416,7 +420,7 @@ export default function DashboardNutrition({
  meals.slice(0, 15).map((m) => (
  <div 
  key={m.id} 
- className="flex items-center justify-between bg-border-subtle p-4 rounded-2xl border border-border-subtle hover:border-border-main transition"
+ className="group flex items-center justify-between bg-border-subtle p-4 rounded-2xl border border-border-subtle hover:border-border-main transition"
  >
  <div className="space-y-1.5 flex-1">
  <div className="flex items-center gap-2">
@@ -436,6 +440,29 @@ export default function DashboardNutrition({
  <span className="text-xs font-medium text-text-muted">
  Health: <span className={m.health_score >= 8 ? "text-emerald-500" : m.health_score >= 5 ? "text-amber-500" : "text-rose-500"}>{m.health_score}/10</span>
  </span>
+ <div className="pt-2 flex gap-3 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+   <button 
+     onClick={() => {
+       const newName = prompt(`Edit name for ${m.name}?`, m.name);
+       if (newName && newName !== m.name) {
+         onUpdateMeal(m.id, { name: newName });
+       }
+     }}
+     className="text-xs font-medium text-text-muted hover:text-accent transition"
+   >
+     Edit
+   </button>
+   <button 
+     onClick={() => {
+       if (confirm(`Delete meal: ${m.name}?`)) {
+         onDeleteMeal(m.id);
+       }
+     }}
+     className="text-xs font-medium text-text-muted hover:text-red-500 transition"
+   >
+     Delete
+   </button>
+ </div>
  </div>
  </div>
  ))

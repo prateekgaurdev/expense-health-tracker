@@ -3,15 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import "dotenv/config";
 import express, { Request, Response } from "express";
 import path from "path";
-import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import apiRoutes from "./backend/routes/apiRoutes";
 import { requestLogger } from "./backend/middlewares/logger";
 import { errorHandler } from "./backend/middlewares/errorHandler";
 
-dotenv.config();
 
 const app = express();
 const PORT = 3000;
@@ -31,10 +30,18 @@ app.use(errorHandler);
 // Vite and Static File Middleware
 // -------------------------------------------------------------
 
+import http from "http";
+
 async function startServer() {
+  let vite: any;
+  const server = http.createServer(app);
+
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
+    vite = await createViteServer({
+      server: { 
+        middlewareMode: true,
+        hmr: { server }
+      },
       appType: "spa",
     });
     app.use(vite.middlewares);
@@ -48,7 +55,7 @@ async function startServer() {
     console.log("Production static files serving from: " + distPath);
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }

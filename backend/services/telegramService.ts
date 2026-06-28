@@ -51,111 +51,117 @@ export async function processTelegramMessage(userId: string, text: string, chatI
     return;
   }
 
-  const parsed = await parseMessageCore(text);
-  const result = parsed.result;
+  try {
+    const parsed = await parseMessageCore(text);
+    const result = parsed.result;
 
-  if (!result) {
-    await sendMessage("Sorry, I couldn't understand that. Please try again.");
-    return;
-  }
-
-  if (result.action === "delete" && result.target_description) {
-    const targetEmbedding = await generateEmbedding(result.target_description);
-    const vectorStr = `[${targetEmbedding.join(',')}]`;
-    
-    const matchingTxns: any[] = await prisma.$queryRaw`
-      SELECT id, note, amount, category FROM "transactions" WHERE profile_id = ${userId}::uuid ORDER BY embedding <=> ${vectorStr}::vector LIMIT 1;
-    `;
-    if (matchingTxns.length > 0) {
-      const match = matchingTxns[0];
-      await prisma.transaction.delete({ where: { id: match.id } });
-      await sendMessage(result.explanation || `Deleted transaction: ${match.note || match.category} (₹${match.amount}).`);
-    } else {
-      await sendMessage("Could not find a transaction matching that description to delete.");
+    if (!result) {
+      await sendMessage("Sorry, I couldn't understand that. Please try again.");
+      return;
     }
-    return;
-  }
 
-  if (result.action === "edit" && result.target_description && result.transaction) {
-    const targetEmbedding = await generateEmbedding(result.target_description);
-    const vectorStr = `[${targetEmbedding.join(',')}]`;
-    
-    const matchingTxns: any[] = await prisma.$queryRaw`
-      SELECT id, note, amount, category FROM "transactions" WHERE profile_id = ${userId}::uuid ORDER BY embedding <=> ${vectorStr}::vector LIMIT 1;
-    `;
-    if (matchingTxns.length > 0) {
-      const match = matchingTxns[0];
-      const newText = `${result.transaction.type}: ${result.transaction.amount} on ${result.transaction.category} - ${result.transaction.note}`;
-      const newEmbedding = await generateEmbedding(newText);
-      const newVectorStr = `[${newEmbedding.join(',')}]`;
-
-      await prisma.transaction.update({
-        where: { id: match.id },
-        data: {
-          amount: result.transaction.amount,
-          category: result.transaction.category,
-          note: result.transaction.note,
-          type: result.transaction.type,
-        }
-      });
-      await prisma.$executeRaw`UPDATE "transactions" SET embedding = ${newVectorStr}::vector WHERE id = ${match.id}`;
-      await sendMessage(result.explanation || `Updated transaction to ₹${result.transaction.amount} for ${result.transaction.note}.`);
-    } else {
-      await sendMessage("Could not find a transaction matching that description to edit.");
+    if (result.action === "delete" && result.target_description) {
+      const targetEmbedding = await generateEmbedding(result.target_description);
+      const vectorStr = `[${targetEmbedding.join(',')}]`;
+      
+      const matchingTxns: any[] = await prisma.$queryRaw`
+        SELECT id, note, amount, category FROM "transactions" WHERE profile_id = ${userId}::uuid ORDER BY embedding <=> ${vectorStr}::vector LIMIT 1;
+      `;
+      if (matchingTxns.length > 0) {
+        const match = matchingTxns[0];
+        await prisma.transaction.delete({ where: { id: match.id } });
+        await sendMessage(result.explanation || `Deleted transaction: ${match.note || match.category} (₹${match.amount}).`);
+      } else {
+        await sendMessage("Could not find a transaction matching that description to delete.");
+      }
+      return;
     }
-    return;
-  }
 
-  // Handle Add Action
-  if (result.type === "expense" || result.type === "income" || result.type === "both") {
-    if (result.transaction) {
-      const textToEmbed = `${result.transaction.type}: ${result.transaction.amount} on ${result.transaction.category} - ${result.transaction.note}`;
-      const embedding = await generateEmbedding(textToEmbed);
-      const vectorStr = `[${embedding.join(',')}]`;
+    if (result.action === "edit" && result.target_description && result.transaction) {
+      const targetEmbedding = await generateEmbedding(result.target_description);
+      const vectorStr = `[${targetEmbedding.join(',')}]`;
+      
+      const matchingTxns: any[] = await prisma.$queryRaw`
+        SELECT id, note, amount, category FROM "transactions" WHERE profile_id = ${userId}::uuid ORDER BY embedding <=> ${vectorStr}::vector LIMIT 1;
+      `;
+      if (matchingTxns.length > 0) {
+        const match = matchingTxns[0];
+        const newText = `${result.transaction.type}: ${result.transaction.amount} on ${result.transaction.category} - ${result.transaction.note}`;
+        const newEmbedding = await generateEmbedding(newText);
+        const newVectorStr = `[${newEmbedding.join(',')}]`;
 
-      const txn = await prisma.transaction.create({
-        data: {
-          profile_id: userId,
-          amount: result.transaction.amount,
-          currency: result.transaction.currency || "INR",
-          category: result.transaction.category,
-          note: result.transaction.note,
-          type: result.transaction.type,
-          payment_method: result.transaction.payment_method || null,
-          merchant: result.transaction.merchant || null,
-          is_subscription: result.transaction.is_subscription || false,
-        }
-      });
-      await prisma.$executeRaw`UPDATE "transactions" SET embedding = ${vectorStr}::vector WHERE id = ${txn.id}`;
+        await prisma.transaction.update({
+          where: { id: match.id },
+          data: {
+            amount: result.transaction.amount,
+            category: result.transaction.category,
+            note: result.transaction.note,
+            type: result.transaction.type,
+          }
+        });
+        await prisma.$executeRaw`UPDATE "transactions" SET embedding = ${newVectorStr}::vector WHERE id = ${match.id}`;
+        await sendMessage(result.explanation || `Updated transaction to ₹${result.transaction.amount} for ${result.transaction.note}.`);
+      } else {
+        await sendMessage("Could not find a transaction matching that description to edit.");
+      }
+      return;
     }
-  }
 
-  if (result.type === "meal" || result.type === "both") {
-    if (result.meal) {
-      const textToEmbed = `Ate ${result.meal.name} for ${result.meal.meal_type}. ${result.meal.calories} kcal, ${result.meal.protein}g protein, health score ${result.meal.health_score}.`;
-      const embedding = await generateEmbedding(textToEmbed);
-      const vectorStr = `[${embedding.join(',')}]`;
+    // Handle Add Action
+    if (result.type === "expense" || result.type === "income" || result.type === "both") {
+      if (result.transaction) {
+        const textToEmbed = `${result.transaction.type}: ${result.transaction.amount} on ${result.transaction.category} - ${result.transaction.note}`;
+        const embedding = await generateEmbedding(textToEmbed);
+        const vectorStr = `[${embedding.join(',')}]`;
 
-      const meal = await prisma.meal.create({
-        data: {
-          profile_id: userId,
-          name: result.meal.name,
-          calories: result.meal.calories,
-          protein: result.meal.protein,
-          carbs: result.meal.carbs,
-          fat: result.meal.fat,
-          fiber: result.meal.fiber,
-          health_score: result.meal.health_score,
-          meal_type: result.meal.meal_type,
-          ingredients: result.meal.ingredients || [],
-          cuisine: result.meal.cuisine || null,
-          portion_size: result.meal.portion_size || null,
-          is_home_cooked: result.meal.is_home_cooked || false,
-        }
-      });
-      await prisma.$executeRaw`UPDATE "meals" SET embedding = ${vectorStr}::vector WHERE id = ${meal.id}`;
+        const txn = await prisma.transaction.create({
+          data: {
+            profile_id: userId,
+            amount: result.transaction.amount,
+            currency: result.transaction.currency || "INR",
+            category: result.transaction.category,
+            note: result.transaction.note,
+            type: result.transaction.type,
+            payment_method: result.transaction.payment_method || null,
+            merchant: result.transaction.merchant || null,
+            is_subscription: result.transaction.is_subscription || false,
+          }
+        });
+        await prisma.$executeRaw`UPDATE "transactions" SET embedding = ${vectorStr}::vector WHERE id = ${txn.id}`;
+      }
     }
-  }
 
-  await sendMessage(result.explanation || "Saved successfully!");
+    if (result.type === "meal" || result.type === "both") {
+      if (result.meal) {
+        const textToEmbed = `Ate ${result.meal.name} for ${result.meal.meal_type}. ${result.meal.calories} kcal, ${result.meal.protein}g protein, health score ${result.meal.health_score}.`;
+        const embedding = await generateEmbedding(textToEmbed);
+        const vectorStr = `[${embedding.join(',')}]`;
+
+        const meal = await prisma.meal.create({
+          data: {
+            profile_id: userId,
+            name: result.meal.name,
+            calories: result.meal.calories,
+            protein: result.meal.protein,
+            carbs: result.meal.carbs,
+            fat: result.meal.fat,
+            fiber: result.meal.fiber,
+            health_score: result.meal.health_score,
+            meal_type: result.meal.meal_type,
+            ingredients: result.meal.ingredients || [],
+            cuisine: result.meal.cuisine || null,
+            portion_size: result.meal.portion_size || null,
+            is_home_cooked: result.meal.is_home_cooked || false,
+          }
+        });
+        await prisma.$executeRaw`UPDATE "meals" SET embedding = ${vectorStr}::vector WHERE id = ${meal.id}`;
+      }
+    }
+
+    const tip = "\nTip: Reply with 'edit <description> to <new amount/note>' to make changes.";
+    await sendMessage((result.explanation || "Saved successfully!") + tip);
+  } catch (error) {
+    console.error("Error processing message:", error);
+    await sendMessage("Sorry, an error occurred while processing your request. Please try again.");
+  }
 }

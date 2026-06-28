@@ -182,9 +182,20 @@ export function parseMessageFallback(message: string) {
     .replace(/\s+/g, " ")
     .trim() || "Item log";
 
+  let action = "add";
+  let target_description: string | null = null;
+  if (clean.startsWith("delete") || clean.startsWith("remove")) {
+    action = "delete";
+    target_description = note;
+  } else if (clean.startsWith("edit") || clean.startsWith("change") || clean.startsWith("update")) {
+    action = "edit";
+    target_description = note;
+  }
+
   const response: any = {
     type: isIncome ? "income" : (isMeal && amount > 0 ? "both" : (isMeal ? "meal" : "expense")),
-    action: "add"
+    action,
+    target_description
   };
 
   if (response.type === "expense" || response.type === "income" || response.type === "both") {

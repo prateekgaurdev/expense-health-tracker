@@ -8,6 +8,7 @@ export interface Profile {
   email: string;
   name: string;
   telegram_chat_id: string | null;
+  telegram_bot_token: string | null;
   link_code: string | null;
   monthly_budget: number;
   calorie_goal: number;

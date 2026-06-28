@@ -242,25 +242,25 @@ export default function App() {
 
   const handleDeleteTransaction = async (id: string) => {
     setTransactions((prev) => prev.filter(t => t.id !== id));
-    if (supabase) {
-      try {
-        const { error } = await supabase.from("transactions").delete().eq("id", id);
-        if (error) throw error;
-      } catch (err: any) {
-        console.error("Error deleting transaction:", err.message || "Unknown error");
-      }
+    try {
+      const res = await fetch(`/api/transaction/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error("Failed to delete transaction");
+    } catch (err: any) {
+      console.error("Error deleting transaction:", err.message || "Unknown error");
     }
   };
 
   const handleUpdateTransaction = async (id: string, updates: Partial<Transaction>) => {
     setTransactions((prev) => prev.map(t => t.id === id ? { ...t, ...updates } : t));
-    if (supabase) {
-      try {
-        const { error } = await supabase.from("transactions").update(updates).eq("id", id);
-        if (error) throw error;
-      } catch (err: any) {
-        console.error("Error updating transaction:", err.message || "Unknown error");
-      }
+    try {
+      const res = await fetch(`/api/transaction/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      if (!res.ok) throw new Error("Failed to update transaction");
+    } catch (err: any) {
+      console.error("Error updating transaction:", err.message || "Unknown error");
     }
   };
 
@@ -273,6 +273,30 @@ export default function App() {
       } catch (err: any) {
         console.error("Error inserting meal to Supabase:", err.message || "Unknown error");
       }
+    }
+  };
+
+  const handleDeleteMeal = async (id: string) => {
+    setMeals((prev) => prev.filter(m => m.id !== id));
+    try {
+      const res = await fetch(`/api/meal/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error("Failed to delete meal");
+    } catch (err: any) {
+      console.error("Error deleting meal:", err.message || "Unknown error");
+    }
+  };
+
+  const handleUpdateMeal = async (id: string, updates: Partial<Meal>) => {
+    setMeals((prev) => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+    try {
+      const res = await fetch(`/api/meal/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      if (!res.ok) throw new Error("Failed to update meal");
+    } catch (err: any) {
+      console.error("Error updating meal:", err.message || "Unknown error");
     }
   };
 
@@ -487,6 +511,8 @@ export default function App() {
                 meals={meals} 
                 transactions={transactions} 
                 onAddMeal={handleAddMeal}
+                onDeleteMeal={handleDeleteMeal}
+                onUpdateMeal={handleUpdateMeal}
               />
             )}
 

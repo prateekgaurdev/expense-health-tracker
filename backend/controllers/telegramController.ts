@@ -9,8 +9,13 @@ export const saveBotToken = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    const appUrl = process.env.APP_URL || req.headers.origin || "https://fintrack.vercel.app";
+    let appUrl = process.env.APP_URL || req.headers.origin || "https://track.prateekgaur.in";
     
+    // Telegram webhooks require HTTPS and cannot be localhost.
+    if (appUrl.includes("localhost")) {
+      appUrl = "https://track.prateekgaur.in";
+    }
+
     await linkTelegramBot(userId, botToken, appUrl);
     
     res.json({ success: true, message: "Webhook successfully registered!" });

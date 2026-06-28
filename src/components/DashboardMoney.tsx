@@ -208,7 +208,7 @@ export default function DashboardMoney({
    transactions.map((txn) => {
      const Icon = getCategoryIcon(txn.category);
      return (
-       <tr key={txn.id} className="hover:bg-border-subtle/50 transition-colors">
+       <tr key={txn.id} className="group hover:bg-border-subtle/50 transition-colors">
        <td className="py-4 px-6 text-sm text-text-muted whitespace-nowrap">
        {new Date(txn.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
        </td>
@@ -230,7 +230,7 @@ export default function DashboardMoney({
        <span className="text-text-main font-medium">-{formatINR(txn.amount)}</span>
        )}
        </td>
-       <td className="py-4 px-6 text-sm text-right whitespace-nowrap">
+       <td className="py-4 px-6 text-sm text-right whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
           <button 
             onClick={() => {
               const newAmount = prompt(`Edit amount for ${txn.category}?`, String(txn.amount));
