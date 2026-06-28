@@ -69,13 +69,41 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  </div>
 
  {profile.telegram_bot_token ? (
-  <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-4 rounded-xl text-sm space-y-1.5 flex-shrink-0 relative z-10 shadow-sm">
-  <p className="font-semibold flex items-center gap-2">
-  <ShieldCheck size={18} className="text-emerald-500"/> Connection Active
-  </p>
-  <p className="text-emerald-600/80 font-mono text-xs">
-    {profile.telegram_chat_id ? `Chat ID: ${profile.telegram_chat_id}` : 'Awaiting your first message...'}
-  </p>
+  <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-4 rounded-xl text-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-shrink-0 relative z-10 shadow-sm">
+   <div className="space-y-1.5">
+    <p className="font-semibold flex items-center gap-2">
+    <ShieldCheck size={18} className="text-emerald-500"/> Connection Active
+    </p>
+    <p className="text-emerald-600/80 font-mono text-xs">
+      {profile.telegram_chat_id ? `Chat ID: ${profile.telegram_chat_id}` : 'Awaiting your first message...'}
+    </p>
+   </div>
+   <button
+      disabled={isLinking}
+      onClick={async () => {
+        if (!confirm('Are you sure you want to disconnect your Telegram bot?')) return;
+        try {
+          setIsLinking(true);
+          const res = await fetch('/api/disconnect-bot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: profile.id })
+          });
+          if (res.ok) {
+            window.location.reload();
+          } else {
+            alert('Failed to disconnect bot');
+          }
+        } catch (err: any) {
+          alert('Error: ' + err.message);
+        } finally {
+          setIsLinking(false);
+        }
+      }}
+      className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
+   >
+      {isLinking ? "Disconnecting..." : "Disconnect Bot"}
+   </button>
   </div>
   ) : (
   <div className="bg-amber-50 border border-amber-200 text-amber-700 px-5 py-4 rounded-xl text-sm space-y-1.5 flex-shrink-0 relative z-10 shadow-sm">
