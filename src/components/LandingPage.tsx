@@ -22,16 +22,20 @@ import {
  PieChart,
  LineChart,
  Brain,
- Smartphone
+ Smartphone,
+ Sun,
+ Moon
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface LandingPageProps {
- onGetStarted: () => void;
- onLogin: () => void;
+  onGetStarted: () => void;
+  onLogin: () => void;
+  theme: "light" | "dark";
+  toggleTheme: () => void;
 }
 
-export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
+export default function LandingPage({ onGetStarted, onLogin, theme, toggleTheme }: LandingPageProps) {
  const [simText, setSimText] = useState("swiggy 420 dinner 🍛");
  const [isTyping, setIsTyping] = useState(false);
  const [messages, setMessages] = useState<Array<{ sender: "user" | "bot"; text: string }>>([
@@ -110,31 +114,62 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  };
 
  return (
- <div className="relative min-h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans selection:bg-emerald-500 selection:text-white">
+ <div className="relative min-h-screen bg-border-subtle text-text-main overflow-hidden font-sans selection:bg-emerald-500 selection:text-white">
  
  {/* GLOWING ORBS BACKGROUND */}
  <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-100 rounded-full blur-[120px] pointer-events-none"></div>
  <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-blue-100 rounded-full blur-[150px] pointer-events-none"></div>
  
  {/* FLOATING HEADER NAV */}
- <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/70 backdrop-blur-xl">
+ <header className="sticky top-0 z-50 border-b border-border-main glass-panel/70 backdrop-blur-xl">
  <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
  <div className="flex items-center gap-4">
  <span className="text-emerald-600 font-display font-extrabold text-2xl tracking-tighter flex items-center gap-1.5 hover:opacity-90 transition cursor-pointer">
- <span className="text-emerald-500 font-black">◢</span> Fin<span className="text-slate-900">Track</span>
+ <span className="text-emerald-500 font-black">◢</span> Fin<span className="text-text-main">Track</span>
  </span>
- <span className="hidden sm:inline-block text-[10px] font-mono tracking-widest bg-white text-emerald-600 px-3 py-1 border border-slate-200 rounded-full">
+ <span className="hidden sm:inline-block text-[10px] font-mono tracking-widest bg-border-subtle text-emerald-600 px-3 py-1 border border-border-main rounded-full">
  v2.4.0 PRO
  </span>
  </div>
 
  <div className="flex items-center gap-4">
- <button 
- onClick={onLogin}
- className="px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-emerald-600 hover:bg-white/40 rounded-xl transition font-mono"
- >
- Sign In
- </button>
+          <button 
+            onClick={onLogin}
+            className="px-4 py-2.5 text-sm font-semibold text-text-secondary hover:text-emerald-600 hover:glass-panel/40 rounded-xl transition font-mono"
+          >
+            Sign In
+          </button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={toggleTheme}
+            className="p-2.5 rounded-full bg-bg-btn border border-border-main text-text-secondary hover:text-accent transition-colors shadow-sm"
+            aria-label="Toggle Theme"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              {theme === "light" ? (
+                <motion.div
+                  key="sun"
+                  initial={{ y: -20, opacity: 0, rotate: -90 }}
+                  animate={{ y: 0, opacity: 1, rotate: 0 }}
+                  exit={{ y: 20, opacity: 0, rotate: 90 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Sun size={18} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="moon"
+                  initial={{ y: -20, opacity: 0, rotate: -90 }}
+                  animate={{ y: 0, opacity: 1, rotate: 0 }}
+                  exit={{ y: 20, opacity: 0, rotate: 90 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Moon size={18} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
  <motion.button 
  onClick={onGetStarted}
  whileHover={{ scale: 1.02 }}
@@ -164,11 +199,11 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  <Zap size={12} className="text-emerald-600 animate-pulse" /> Self-Hosted Budget & Diet AI Engine
  </motion.div>
  
- <h1 className="text-5xl md:text-7.5xl font-extrabold tracking-tight leading-[1.1] text-slate-900">
+ <h1 className="text-5xl md:text-7.5xl font-extrabold tracking-tight leading-[1.1] text-text-main">
  Unify your <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">ledger</span> and <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400">nutrition</span> through a simple chat bot.
  </h1>
 
- <p className="text-lg text-slate-600 max-w-xl leading-relaxed">
+ <p className="text-lg text-text-secondary max-w-xl leading-relaxed">
  End the era of exhausting spreadsheets and rigid ledger applications. Just message your secure chatbot in raw, natural language and watch your personal metrics sync in milliseconds.
  </p>
 
@@ -185,23 +220,23 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  href="#features"
  whileHover={{ scale: 1.02, y: -2 }}
  whileTap={{ scale: 0.98 }}
- className="border border-slate-200 hover:border-slate-300 bg-white/40 hover:bg-white text-slate-600 hover:text-emerald-600 px-7 py-4 rounded-2xl transition duration-300 flex items-center justify-center gap-2 text-base cursor-pointer"
+ className="border border-border-main hover:border-slate-300 glass-panel/40 hover:glass-panel text-text-secondary hover:text-emerald-600 px-7 py-4 rounded-2xl transition duration-300 flex items-center justify-center gap-2 text-base cursor-pointer"
  >
  Explore Features
  </motion.a>
  </div>
 
- <div className="grid grid-cols-3 gap-6 pt-8 border-t border-slate-200/60 max-w-lg">
+ <div className="grid grid-cols-3 gap-6 pt-8 border-t border-border-main/60 max-w-lg">
  <div className="space-y-1.5">
- <p className="text-3xl font-bold text-slate-900 font-mono">1.2s</p>
- <p className="text-xs text-blue-500 font-semibold uppercase tracking-wider">AI Inference</p>
+ <p className="text-3xl font-bold text-text-main font-mono">1.2s</p>
+ <p className="text-xs text-accent font-semibold uppercase tracking-wider">AI Inference</p>
  </div>
  <div className="space-y-1.5">
  <p className="text-3xl font-bold text-emerald-600 font-mono">100%</p>
  <p className="text-xs text-emerald-500 font-semibold uppercase tracking-wider">Data Privacy</p>
  </div>
  <div className="space-y-1.5">
- <p className="text-3xl font-bold text-blue-600 font-mono">2-in-1</p>
+ <p className="text-3xl font-bold text-accent font-mono">2-in-1</p>
  <p className="text-xs text-purple-500 font-semibold uppercase tracking-wider">Holistic Tracking</p>
  </div>
  </div>
@@ -214,9 +249,9 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
  className="lg:col-span-5 space-y-6"
  >
- <div className="bg-white/80 border border-slate-200 rounded-3xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.4)] backdrop-blur-lg">
+ <div className="glass-panel/80 border border-border-main rounded-3xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.4)] backdrop-blur-lg">
  {/* Bot Header */}
- <div className="bg-white/80 px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+ <div className="glass-panel/80 px-5 py-4 border-b border-border-main flex items-center justify-between">
  <div className="flex items-center gap-3">
  <div className="relative">
  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center font-bold text-white shadow-md">
@@ -225,17 +260,17 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950"></span>
  </div>
  <div>
- <h4 className="text-sm font-bold text-slate-900">FinTrack Bot</h4>
+ <h4 className="text-sm font-bold text-text-main">FinTrack Bot</h4>
  <p className="text-xs text-emerald-600 font-mono tracking-wide">online · ready to parse</p>
  </div>
  </div>
- <div className="text-[10px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded font-mono">
+ <div className="text-[10px] glass-panel border border-border-main text-text-secondary px-2 py-0.5 rounded font-mono">
  SIMULATOR
  </div>
  </div>
 
  {/* Simulated Chat History */}
- <div className="h-72 overflow-y-auto p-5 space-y-4 bg-white/30 flex flex-col">
+ <div className="h-72 overflow-y-auto p-5 space-y-4 glass-panel/30 flex flex-col">
  <div className="flex-1"></div>
  {messages.map((msg, idx) => (
  <motion.div 
@@ -248,7 +283,7 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
  msg.sender === "user" 
  ? "bg-emerald-500 text-white font-semibold rounded-br-none shadow-[0_4px_12px_rgba(16,185,129,0.25)]" 
- : "bg-white border border-slate-200 text-slate-200 font-mono text-xs whitespace-pre-line rounded-bl-none"
+ : "bg-border-subtle border border-border-main text-text-main font-mono text-xs whitespace-pre-line rounded-bl-none"
  }`}>
  {msg.text}
  </div>
@@ -257,7 +292,7 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  
  {isTyping && (
  <div className="flex justify-start">
- <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-none px-4 py-3 text-xs text-slate-600 font-mono flex items-center gap-1.5">
+ <div className="glass-panel border border-border-main rounded-2xl rounded-bl-none px-4 py-3 text-xs text-text-secondary font-mono flex items-center gap-1.5">
  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce"></span>
  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: "0.2s" }}></span>
  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: "0.4s" }}></span>
@@ -267,35 +302,35 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  </div>
 
  {/* Quick Chips */}
- <div className="px-5 py-2.5 bg-white border-t border-slate-200 flex gap-2 overflow-x-auto no-scrollbar">
+ <div className="px-5 py-2.5 glass-panel border-t border-border-main flex gap-2 overflow-x-auto no-scrollbar">
  <button 
  onClick={() => fillChip("ola 250 office auto")}
- className="shrink-0 text-[10px] font-mono bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 transition"
+ className="shrink-0 text-[10px] font-mono bg-bg-app hover:bg-border-subtle text-text-secondary hover:text-text-main px-2.5 py-1 rounded-lg border border-border-main transition"
  >
  + ola 250
  </button>
  <button 
  onClick={() => fillChip("lunch chicken salad & boiled egg")}
- className="shrink-0 text-[10px] font-mono bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 transition"
+ className="shrink-0 text-[10px] font-mono bg-bg-app hover:bg-border-subtle text-text-secondary hover:text-text-main px-2.5 py-1 rounded-lg border border-border-main transition"
  >
  + lunch chicken
  </button>
  <button 
  onClick={() => fillChip("blinkit 850 bread and milk")}
- className="shrink-0 text-[10px] font-mono bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 transition"
+ className="shrink-0 text-[10px] font-mono bg-bg-app hover:bg-border-subtle text-text-secondary hover:text-text-main px-2.5 py-1 rounded-lg border border-border-main transition"
  >
  + blinkit 850
  </button>
  </div>
 
  {/* Chat Input Form */}
- <form onSubmit={handleSimulate} className="p-4 bg-white border-t border-slate-200 flex gap-2">
+ <form onSubmit={handleSimulate} className="p-4 glass-panel border-t border-border-main flex gap-2">
  <input 
  type="text"
  value={simText}
  onChange={(e) => setSimText(e.target.value)}
  placeholder="Type here to test..."
- className="flex-1 bg-white border border-slate-200 focus:border-emerald-500 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-slate-200 font-mono"
+ className="flex-1 glass-panel border border-border-main focus:border-emerald-500 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-slate-200 font-mono"
  />
  <motion.button 
  type="submit"
@@ -309,9 +344,9 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  </div>
 
  {/* SIMULATED METRICS DASHBOARD VIEW */}
- <div className="bg-white/60 border border-slate-200 rounded-2xl p-5 font-mono text-xs space-y-4 shadow-lg backdrop-blur-md">
- <div className="flex justify-between border-b border-slate-200/60 pb-2.5">
- <span className="text-slate-600 font-bold flex items-center gap-1.5">
+ <div className="glass-panel/60 border border-border-main rounded-2xl p-5 font-mono text-xs space-y-4 shadow-lg backdrop-blur-md">
+ <div className="flex justify-between border-b border-border-main/60 pb-2.5">
+ <span className="text-text-secondary font-bold flex items-center gap-1.5">
  <Terminal size={12} /> CORE ANALYTICAL CORE
  </span>
  <span className="text-emerald-600 flex items-center gap-1.5 font-bold">
@@ -320,22 +355,22 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  </div>
 
  <div className="grid grid-cols-2 gap-4">
- <div className="space-y-1 bg-white/40 p-3 rounded-xl border border-slate-200">
- <span className="text-xs text-slate-600 font-medium">Monthly Spent</span>
+ <div className="space-y-1 glass-panel/40 p-3 rounded-xl border border-border-main">
+ <span className="text-xs text-text-secondary font-medium">Monthly Spent</span>
  <p className="text-base font-bold text-emerald-600 font-mono">₹{previewSpent.toLocaleString()}</p>
  </div>
- <div className="space-y-1 bg-white/40 p-3 rounded-xl border border-slate-200">
- <span className="text-xs text-slate-600 font-medium">Daily Protein</span>
- <p className="text-base font-bold text-blue-600 font-mono">{previewProtein}g / 110g</p>
+ <div className="space-y-1 glass-panel/40 p-3 rounded-xl border border-border-main">
+ <span className="text-xs text-text-secondary font-medium">Daily Protein</span>
+ <p className="text-base font-bold text-accent font-mono">{previewProtein}g / 110g</p>
  </div>
  </div>
 
  <div className="space-y-2">
  <div className="flex justify-between items-center text-[10px]">
- <span className="text-slate-600">CALORIES LOGGED TODAY:</span>
+ <span className="text-text-secondary">CALORIES LOGGED TODAY:</span>
  <span className="text-amber-400 font-bold">{previewCalories} / 2200 kcal</span>
  </div>
- <div className="w-full bg-white h-2 rounded-full overflow-hidden">
+ <div className="w-full glass-panel h-2 rounded-full overflow-hidden">
  <motion.div 
  className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-400 h-full" 
  initial={{ width: "0%" }}
@@ -349,14 +384,14 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  </section>
 
  {/* DETAILED FEATURES BENTO GRID */}
- <section id="features" className="relative z-10 border-t border-slate-200 bg-white py-28">
+ <section id="features" className="relative z-10 border-t border-border-main glass-panel py-28">
  <div className="max-w-7xl mx-auto px-6">
  <div className="text-center max-w-2xl mx-auto space-y-4 mb-20">
  <h2 className="text-sm text-emerald-500 font-semibold uppercase tracking-wider mb-2">Core Capabilities</h2>
- <p className="text-4xl font-display font-black text-slate-900 leading-tight">
+ <p className="text-4xl font-display font-black text-text-main leading-tight">
  Tailored specifically for modern health and wealth optimization.
  </p>
- <p className="text-slate-600">
+ <p className="text-text-secondary">
  One central portal syncing your physical energy inputs alongside your financial capital outputs in absolute real-time.
  </p>
  </div>
@@ -365,17 +400,17 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  {/* Bento Card 1 */}
  <motion.div 
  whileHover={{ y: -6 }}
- className="md:col-span-2 bg-gradient-to-br from-slate-50/60 to-slate-100/80 border border-slate-200 p-8 rounded-3xl relative overflow-hidden group"
+ className="md:col-span-2 glass-panel border border-border-main p-8 rounded-3xl relative overflow-hidden group"
  >
  <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-100 transition-colors duration-500"></div>
  <div className="w-12 h-12 rounded-xl bg-emerald-100 border border-emerald-500/20 flex items-center justify-center text-emerald-600 mb-6">
  <Brain size={22} />
  </div>
- <h3 className="text-xl font-bold text-slate-900 mb-3">Natural Language Parsing Engine</h3>
- <p className="text-slate-600 text-sm leading-relaxed mb-6">
- Powered by Gemini Flash AI, our custom parsers break down statements like <code className="text-emerald-600 font-mono bg-white px-1.5 py-0.5 rounded">"had biryani 350"</code> or <code className="text-emerald-600 font-mono bg-white px-1.5 py-0.5 rounded">"uber to office 180"</code> with supreme category accuracy.
+ <h3 className="text-xl font-bold text-text-main mb-3">Natural Language Parsing Engine</h3>
+ <p className="text-text-secondary text-sm leading-relaxed mb-6">
+ Powered by Gemini Flash AI, our custom parsers break down statements like <code className="text-accent font-mono bg-border-subtle border border-border-main px-1.5 py-0.5 rounded">"had biryani 350"</code> or <code className="text-accent font-mono bg-border-subtle border border-border-main px-1.5 py-0.5 rounded">"uber to office 180"</code> with supreme category accuracy.
  </p>
- <div className="flex gap-4 text-xs font-mono text-slate-600">
+ <div className="flex gap-4 text-xs font-mono text-text-secondary">
  <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-emerald-600" /> Multi-currency Ready</span>
  <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-emerald-600" /> Contextual AI corrections</span>
  </div>
@@ -384,13 +419,13 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  {/* Bento Card 2 */}
  <motion.div 
  whileHover={{ y: -6 }}
- className="bg-gradient-to-br from-slate-50/60 to-slate-100/80 border border-slate-200 p-8 rounded-3xl relative overflow-hidden group"
+ className="glass-panel border border-border-main p-8 rounded-3xl relative overflow-hidden group"
  >
- <div className="w-12 h-12 rounded-xl bg-blue-100 border border-cyan-500/20 flex items-center justify-center text-blue-600 mb-6">
+ <div className="w-12 h-12 rounded-xl bg-blue-100 border border-cyan-500/20 flex items-center justify-center text-accent mb-6">
  <Lock size={22} />
  </div>
- <h3 className="text-xl font-bold text-slate-900 mb-3">100% Private Ownership</h3>
- <p className="text-slate-600 text-sm leading-relaxed">
+ <h3 className="text-xl font-bold text-text-main mb-3">100% Private Ownership</h3>
+ <p className="text-text-secondary text-sm leading-relaxed">
  Connect your private Supabase backend. All data lives on your own servers with zero corporate analytics tracking your bank accounts or health patterns.
  </p>
  </motion.div>
@@ -398,13 +433,13 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  {/* Bento Card 3 */}
  <motion.div 
  whileHover={{ y: -6 }}
- className="bg-gradient-to-br from-slate-50/60 to-slate-100/80 border border-slate-200 p-8 rounded-3xl relative overflow-hidden group"
+ className="glass-panel border border-border-main p-8 rounded-3xl relative overflow-hidden group"
  >
  <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-6">
  <PieChart size={22} />
  </div>
- <h3 className="text-xl font-bold text-slate-900 mb-3">Budget Burn Bars</h3>
- <p className="text-slate-600 text-sm leading-relaxed">
+ <h3 className="text-xl font-bold text-text-main mb-3">Budget Burn Bars</h3>
+ <p className="text-text-secondary text-sm leading-relaxed">
  Visualise your real-time spend paces against monthly caps. Avoid sudden spikes and monitor projected cashout levels with precision pacing cards.
  </p>
  </motion.div>
@@ -412,19 +447,19 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  {/* Bento Card 4 */}
  <motion.div 
  whileHover={{ y: -6 }}
- className="md:col-span-2 bg-gradient-to-br from-slate-50/60 to-slate-100/80 border border-slate-200 p-8 rounded-3xl relative overflow-hidden group"
+ className="md:col-span-2 glass-panel border border-border-main p-8 rounded-3xl relative overflow-hidden group"
  >
  <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/5 rounded-full blur-3xl group-hover:bg-blue-100 transition-colors duration-500"></div>
- <div className="w-12 h-12 rounded-xl bg-blue-100 border border-cyan-500/20 flex items-center justify-center text-blue-600 mb-6">
+ <div className="w-12 h-12 rounded-xl bg-blue-100 border border-cyan-500/20 flex items-center justify-center text-accent mb-6">
  <Utensils size={22} />
  </div>
- <h3 className="text-xl font-bold text-slate-900 mb-3">Protein and Caloric Ring Analytics</h3>
- <p className="text-slate-600 text-sm leading-relaxed mb-6">
+ <h3 className="text-xl font-bold text-text-main mb-3">Protein and Caloric Ring Analytics</h3>
+ <p className="text-text-secondary text-sm leading-relaxed mb-6">
  Analyze daily nutrition goals using responsive rings. FinTrack automatically calculates macronutrient weights for logged ingredients and aggregates your metrics.
  </p>
- <div className="flex gap-4 text-xs font-mono text-slate-600">
- <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-blue-600" /> Auto-estimate macros</span>
- <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-blue-600" /> Nutrition history curves</span>
+ <div className="flex gap-4 text-xs font-mono text-text-secondary">
+ <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-accent" /> Auto-estimate macros</span>
+ <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-accent" /> Nutrition history curves</span>
  </div>
  </motion.div>
  </div>
@@ -435,14 +470,14 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  <section className="relative z-10 py-24 max-w-7xl mx-auto px-6">
  <div className="grid md:grid-cols-2 gap-16 items-center">
  <div className="space-y-6">
- <h2 className="text-sm text-blue-500 font-semibold uppercase tracking-wider mb-2">Wealth & Health Crossover</h2>
- <h3 className="text-3xl md:text-4xl font-display font-black text-slate-900 leading-tight">
+ <h2 className="text-sm text-accent font-semibold uppercase tracking-wider mb-2">Wealth & Health Crossover</h2>
+ <h3 className="text-3xl md:text-4xl font-display font-black text-text-main leading-tight">
  Bridge your dining expenditure directly to physical muscle gain.
  </h3>
- <p className="text-slate-600 leading-relaxed text-sm md:text-base">
- Calculate cost-effectiveness with dynamic correlations like <b className="text-emerald-600 font-mono">₹ per 100 kcal</b> or <b className="text-blue-600 font-mono">₹ per gram of protein</b>. Monitor whether premium spending actually supports your workout targets or merely adds empty sugar weight.
+ <p className="text-text-secondary leading-relaxed text-sm md:text-base">
+ Calculate cost-effectiveness with dynamic correlations like <b className="text-emerald-600 font-mono">₹ per 100 kcal</b> or <b className="text-accent font-mono">₹ per gram of protein</b>. Monitor whether premium spending actually supports your workout targets or merely adds empty sugar weight.
  </p>
- <ul className="space-y-3 text-xs md:text-sm text-slate-600 font-mono">
+ <ul className="space-y-3 text-xs md:text-sm text-text-secondary font-mono">
  <li className="flex items-center gap-2.5">
  <span className="w-5 h-5 bg-emerald-100 border border-emerald-500/30 rounded-lg flex items-center justify-center text-emerald-600 text-[10px]">1</span>
  Auto-correlate meal costs with nutrition datasets
@@ -458,16 +493,16 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  </ul>
  </div>
 
- <div className="bg-white/60 border border-slate-200 p-8 rounded-3xl grid grid-cols-3 gap-6 text-center items-center relative overflow-hidden backdrop-blur-md">
+ <div className="glass-panel/60 border border-border-main p-8 rounded-3xl grid grid-cols-3 gap-6 text-center items-center relative overflow-hidden backdrop-blur-md">
  <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent pointer-events-none"></div>
  
  <div className="space-y-3">
- <div className="mx-auto w-20 h-20 rounded-2xl border border-slate-200 bg-white flex flex-col items-center justify-center">
- <span className="text-lg font-bold text-slate-900 font-mono">83%</span>
- <span className="text-[9px] text-slate-600 uppercase tracking-widest font-mono">Cal</span>
+ <div className="mx-auto w-20 h-20 rounded-2xl border border-border-main glass-panel flex flex-col items-center justify-center">
+ <span className="text-lg font-bold text-text-main font-mono">83%</span>
+ <span className="text-[9px] text-text-secondary uppercase tracking-widest font-mono">Cal</span>
  </div>
- <p className="text-[10px] text-slate-600 font-mono font-bold uppercase tracking-wider">Calories Goal</p>
- <p className="text-[11px] text-slate-600 font-mono">1.8k / 2.2k kcal</p>
+ <p className="text-[10px] text-text-secondary font-mono font-bold uppercase tracking-wider">Calories Goal</p>
+ <p className="text-[11px] text-text-secondary font-mono">1.8k / 2.2k kcal</p>
  </div>
 
  <div className="space-y-3">
@@ -475,32 +510,32 @@ export default function LandingPage({ onGetStarted, onLogin }: LandingPageProps)
  <span className="text-lg font-bold text-emerald-600 font-mono">92g</span>
  <span className="text-[9px] text-emerald-500 uppercase tracking-widest font-mono">Prot</span>
  </div>
- <p className="text-[10px] text-slate-600 font-mono font-bold uppercase tracking-wider">Protein Logged</p>
- <p className="text-[11px] text-slate-600 font-mono">Goal: 110g</p>
+ <p className="text-[10px] text-text-secondary font-mono font-bold uppercase tracking-wider">Protein Logged</p>
+ <p className="text-[11px] text-text-secondary font-mono">Goal: 110g</p>
  </div>
 
  <div className="space-y-3">
- <div className="mx-auto w-20 h-20 rounded-2xl border border-slate-200 bg-white flex flex-col items-center justify-center">
- <span className="text-lg font-bold text-slate-900 font-mono">8.4</span>
- <span className="text-[9px] text-slate-600 uppercase tracking-widest font-mono">Score</span>
+ <div className="mx-auto w-20 h-20 rounded-2xl border border-border-main glass-panel flex flex-col items-center justify-center">
+ <span className="text-lg font-bold text-text-main font-mono">8.4</span>
+ <span className="text-[9px] text-text-secondary uppercase tracking-widest font-mono">Score</span>
  </div>
- <p className="text-[10px] text-slate-600 font-mono font-bold uppercase tracking-wider">Health Rating</p>
- <p className="text-[11px] text-slate-600 font-mono">Highly consistent</p>
+ <p className="text-[10px] text-text-secondary font-mono font-bold uppercase tracking-wider">Health Rating</p>
+ <p className="text-[11px] text-text-secondary font-mono">Highly consistent</p>
  </div>
  </div>
  </div>
  </section>
 
  {/* FOOTER */}
- <footer className="border-t border-slate-200 bg-white py-12 relative z-10">
+ <footer className="border-t border-border-main glass-panel py-12 relative z-10">
  <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
  <div className="flex items-center gap-2">
  <span className="text-emerald-600 font-display font-extrabold text-lg tracking-tighter">
- ◢ Fin<span className="text-slate-900">Track</span>
+ ◢ Fin<span className="text-text-main">Track</span>
  </span>
- <span className="text-xs text-slate-600 font-mono">| Self-Hosted Finance & Diet Platform</span>
+ <span className="text-xs text-text-secondary font-mono">| Self-Hosted Finance & Diet Platform</span>
  </div>
- <p className="text-xs text-slate-600 font-mono">
+ <p className="text-xs text-text-secondary font-mono">
  © 2026 FinTrack. 100% client-side privacy secured. No tracking cookies.
  </p>
  </div>

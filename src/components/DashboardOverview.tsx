@@ -149,8 +149,8 @@ export default function DashboardOverview({
  >
  <div className="flex items-center justify-between mb-2">
  <div>
- <h1 className="text-3xl font-semibold tracking-tight text-slate-900 mb-1">Overview</h1>
- <p className="text-slate-500 text-sm">Your daily financial and nutritional summary.</p>
+ <h1 className="text-3xl font-semibold tracking-tight text-text-main mb-1">Overview</h1>
+ <p className="text-text-muted text-sm">Your daily financial and nutritional summary.</p>
  </div>
  </div>
  
@@ -163,23 +163,23 @@ export default function DashboardOverview({
  >
  {/* Card 1: Spent */}
  <motion.div 
- className="bg-white border border-slate-200 p-6 rounded-2xl flex flex-col justify-between shadow-sm"
+ className="glass-panel border border-border-main p-6 rounded-2xl flex flex-col justify-between shadow-sm"
  >
  <div className="flex justify-between items-start mb-4">
- <span className="text-sm font-medium text-slate-500">Total Spent</span>
- <div className="p-2 bg-slate-50 rounded-lg border border-slate-200">
- <Wallet size={16} className="text-slate-700" />
+ <span className="text-sm font-medium text-text-muted">Total Spent</span>
+ <div className="p-2 bg-border-subtle rounded-lg border border-border-main">
+ <Wallet size={16} className="text-text-secondary" />
  </div>
  </div>
  <div className="flex items-baseline gap-2 mb-3">
- <span className="text-2xl font-bold text-slate-900 tracking-tight">
+ <span className="text-2xl font-bold text-text-main tracking-tight">
  {formatINR(totalSpentMonth)}
  </span>
- <span className="text-sm text-slate-500 font-medium">
+ <span className="text-sm text-text-muted font-medium">
  / {formatINR(profile.monthly_budget)}
  </span>
  </div>
- <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+ <div className="w-full bg-border-subtle h-1.5 rounded-full overflow-hidden">
  <div 
  className={`h-full transition-all duration-500 ${
  budgetPercentage > 90 
@@ -195,15 +195,15 @@ export default function DashboardOverview({
 
  {/* Card 2: Projected */}
  <motion.div 
- className="bg-white border border-slate-200 p-6 rounded-2xl flex flex-col justify-between shadow-sm"
+ className="glass-panel border border-border-main p-6 rounded-2xl flex flex-col justify-between shadow-sm"
  >
  <div className="flex justify-between items-start mb-4">
- <span className="text-sm font-medium text-slate-500">Projected Spend</span>
- <div className="p-2 bg-slate-50 rounded-lg border border-slate-200">
- <TrendingUp size={16} className="text-slate-700" />
+ <span className="text-sm font-medium text-text-muted">Projected Spend</span>
+ <div className="p-2 bg-border-subtle rounded-lg border border-border-main">
+ <TrendingUp size={16} className="text-text-secondary" />
  </div>
  </div>
- <div className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
+ <div className="text-2xl font-bold text-text-main tracking-tight mb-2">
  {formatINR(projectedSpend)}
  </div>
  <p className="text-sm">
@@ -221,10 +221,10 @@ export default function DashboardOverview({
 
  {/* Card 3: Income */}
  <motion.div 
- className="bg-white border border-slate-200 p-6 rounded-2xl flex flex-col justify-between shadow-sm"
+ className="glass-panel border border-border-main p-6 rounded-2xl flex flex-col justify-between shadow-sm"
  >
  <div className="flex justify-between items-start mb-4">
- <span className="text-sm font-medium text-slate-500">Monthly Income</span>
+ <span className="text-sm font-medium text-text-muted">Monthly Income</span>
  <div className="p-2 bg-emerald-50 border border-emerald-100 rounded-lg">
  <PiggyBank size={16} className="text-emerald-600" />
  </div>
@@ -232,25 +232,25 @@ export default function DashboardOverview({
  <div className="text-2xl font-bold text-emerald-600 tracking-tight mb-2">
  {formatINR(totalIncomeMonth)}
  </div>
- <p className="text-sm text-slate-500">
- Net Savings: <span className="font-medium text-slate-700">{formatINR(Math.max(0, totalIncomeMonth - totalSpentMonth))}</span>
+ <p className="text-sm text-text-muted">
+ Net Savings: <span className="font-medium text-text-secondary">{formatINR(Math.max(0, totalIncomeMonth - totalSpentMonth))}</span>
  </p>
  </motion.div>
 
  {/* Card 4: Diet */}
  <motion.div 
- className="bg-white border border-slate-200 p-6 rounded-2xl flex items-center justify-between shadow-sm"
+ className="glass-panel border border-border-main p-6 rounded-2xl flex items-center justify-between shadow-sm"
  >
  <div className="space-y-3">
  <div className="flex items-center gap-2">
  <Flame size={16} className="text-orange-500" />
- <span className="text-sm font-medium text-slate-500">Daily Intake</span>
+ <span className="text-sm font-medium text-text-muted">Daily Intake</span>
  </div>
- <div className="text-2xl font-bold text-slate-900 tracking-tight flex items-baseline gap-1">
- {todayCalories} <span className="text-sm font-medium text-slate-500">/ {profile.calorie_goal}</span>
+ <div className="text-2xl font-bold text-text-main tracking-tight flex items-baseline gap-1">
+ {todayCalories} <span className="text-sm font-medium text-text-muted">/ {profile.calorie_goal}</span>
  </div>
- <div className="text-sm text-slate-600 flex items-center gap-1.5">
- Protein: <span className="text-slate-900 font-semibold">{todayProtein}g</span>
+ <div className="text-sm text-text-secondary flex items-center gap-1.5">
+ Protein: <span className="text-text-main font-semibold">{todayProtein}g</span>
  </div>
  </div>
  
@@ -282,16 +282,16 @@ export default function DashboardOverview({
  >
  {/* Quick Log Input (Left) */}
  <div className="lg:col-span-7 space-y-6">
- <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+ <div className="glass-panel border border-border-main rounded-2xl p-6 sm:p-8 shadow-sm">
  <div className="flex items-center gap-3 mb-6">
- <div className="p-2 bg-blue-50 border border-blue-100 rounded-lg text-blue-600">
+ <div className="p-2 bg-accent/10 border border-accent/20 rounded-lg text-accent">
  <Sparkles size={20} />
  </div>
  <div>
- <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
+ <h3 className="text-lg font-semibold text-text-main tracking-tight">
  Quick AI Log
  </h3>
- <p className="text-sm text-slate-500">
+ <p className="text-sm text-text-muted">
  Type any expense or meal naturally.
  </p>
  </div>
@@ -306,12 +306,12 @@ export default function DashboardOverview({
  onChange={(e) => setConsoleInput(e.target.value)}
  placeholder="e.g. 'spent 450 on pizza lunch' or 'had 2 eggs'"
  disabled={parsing}
- className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl pl-4 pr-12 py-3.5 text-sm focus:outline-none text-slate-900 placeholder-slate-400 disabled:opacity-50 transition-colors shadow-sm"
+ className="w-full bg-border-subtle border border-border-main focus:border-blue-500 rounded-xl pl-4 pr-12 py-3.5 text-sm focus:outline-none text-text-main placeholder-slate-400 disabled:opacity-50 transition-colors shadow-sm"
  />
  <button
  type="submit"
  disabled={parsing || !consoleInput.trim()}
- className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 text-white disabled:text-slate-400 p-2 rounded-lg transition shadow-sm active:scale-95"
+ className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 text-white disabled:text-text-muted p-2 rounded-lg transition shadow-sm active:scale-95"
  >
  <Send size={16} />
  </button>
@@ -319,7 +319,7 @@ export default function DashboardOverview({
  </form>
 
  {parsing && (
- <div className="mt-4 flex items-center gap-2 text-sm text-blue-600 font-medium">
+ <div className="mt-4 flex items-center gap-2 text-sm text-accent font-medium">
  <Activity size={16} className="animate-pulse" /> Processing input...
  </div>
  )}
@@ -333,8 +333,8 @@ export default function DashboardOverview({
  </div>
  )}
 
- <div className="mt-6 pt-6 border-t border-slate-100">
- <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+ <div className="mt-6 pt-6 border-t border-border-subtle">
+ <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
  Suggestions
  </p>
  <div className="flex flex-wrap gap-2">
@@ -348,7 +348,7 @@ export default function DashboardOverview({
  key={chip}
  type="button"
  onClick={() => setConsoleInput(chip)}
- className="text-sm font-medium bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+ className="text-sm font-medium glass-panel hover:bg-border-subtle border border-border-main text-text-secondary px-3 py-1.5 rounded-lg transition-colors shadow-sm"
  >
  {chip}
  </button>
@@ -366,8 +366,8 @@ export default function DashboardOverview({
 
  {/* Recent Activity (Right) */}
  <div className="lg:col-span-5 space-y-6">
- <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
- <h3 className="text-lg font-semibold text-slate-900 mb-6 tracking-tight">
+ <div className="glass-panel border border-border-main rounded-2xl p-6 sm:p-8 shadow-sm">
+ <h3 className="text-lg font-semibold text-text-main mb-6 tracking-tight">
  Recent Transactions
  </h3>
 
@@ -384,17 +384,17 @@ export default function DashboardOverview({
  {t.category.slice(0, 2)}
  </div>
  <div>
- <h4 className="text-sm font-medium text-slate-900 capitalize">
+ <h4 className="text-sm font-medium text-text-main capitalize">
  {t.note || t.category}
  </h4>
- <p className="text-xs text-slate-500">
+ <p className="text-xs text-text-muted">
  {dateObj.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · {t.category}
  </p>
  </div>
  </div>
 
  <div className={`text-sm font-semibold ${
- isExpense ? "text-slate-900" : "text-emerald-600"
+ isExpense ? "text-text-main" : "text-emerald-600"
  }`}>
  {isExpense ? "-" : "+"}{formatINR(t.amount)}
  </div>
@@ -403,8 +403,8 @@ export default function DashboardOverview({
  })}
  </div>
 
- <div className="mt-8 pt-6 border-t border-slate-100">
- <h3 className="text-sm font-semibold text-slate-900 mb-4 tracking-tight">
+ <div className="mt-8 pt-6 border-t border-border-subtle">
+ <h3 className="text-sm font-semibold text-text-main mb-4 tracking-tight">
  Top Spending Categories
  </h3>
  <div className="space-y-4">
@@ -414,17 +414,17 @@ export default function DashboardOverview({
  return (
  <div key={cat} className="space-y-2">
  <div className="flex justify-between text-sm">
- <span className="capitalize text-slate-600 font-medium">{cat}</span>
- <span className="font-semibold text-slate-900">{formatINR(val)}</span>
+ <span className="capitalize text-text-secondary font-medium">{cat}</span>
+ <span className="font-semibold text-text-main">{formatINR(val)}</span>
  </div>
- <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+ <div className="w-full bg-border-subtle h-1.5 rounded-full overflow-hidden">
  <div className="bg-blue-600 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
  </div>
  </div>
  );
  })
  ) : (
- <p className="text-sm text-slate-500">No expenses recorded for this month.</p>
+ <p className="text-sm text-text-muted">No expenses recorded for this month.</p>
  )}
  </div>
  </div>

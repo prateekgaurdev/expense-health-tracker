@@ -123,10 +123,10 @@ export default function DashboardNutrition({
  className="space-y-8 font-sans">
  
  {/* HEADER ROW */}
- <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
+ <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 glass-panel border border-border-main p-6 rounded-3xl shadow-sm">
  <div className="space-y-2">
- <h2 className="text-lg font-semibold text-slate-900 ">Nutrition Goals</h2>
- <div className="text-sm text-slate-500">
+ <h2 className="text-lg font-semibold text-text-main ">Nutrition Goals</h2>
+ <div className="text-sm text-text-muted">
  Active targets: <b className="text-orange-500">{profile.calorie_goal} kcal</b> / day & <b className="text-emerald-500">{profile.protein_goal}g protein</b> / day
  </div>
  </div>
@@ -140,31 +140,31 @@ export default function DashboardNutrition({
  </div>
 
  {showAddForm && (
- <form onSubmit={handleManualAddMeal} className="bg-white border border-slate-200 p-6 rounded-3xl space-y-6 shadow-sm">
- <div className="border-b border-slate-100 pb-4">
- <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
- <Utensils size={16} className="text-blue-500" /> Log Meal Details
+ <form onSubmit={handleManualAddMeal} className="glass-panel border border-border-main p-6 rounded-3xl space-y-6 shadow-sm">
+ <div className="border-b border-border-subtle pb-4">
+ <h4 className="text-sm font-semibold text-text-main flex items-center gap-2">
+ <Utensils size={16} className="text-accent" /> Log Meal Details
  </h4>
  </div>
  
  <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
  <div className="md:col-span-3 space-y-2">
- <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">Meal Name</label>
+ <label className="block text-xs font-medium text-text-muted uppercase tracking-wide">Meal Name</label>
  <input
  type="text"
  required
  value={mealName}
  onChange={(e) => setMealName(e.target.value)}
  placeholder="Chicken bowl..."
- className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition"
+ className="w-full bg-border-subtle border border-border-main rounded-xl px-4 py-2.5 text-sm text-text-main focus:outline-none focus:border-blue-500 transition"
  />
  </div>
  <div className="md:col-span-2 space-y-2">
- <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">Type</label>
+ <label className="block text-xs font-medium text-text-muted uppercase tracking-wide">Type</label>
  <select
  value={mealType}
  onChange={(e) => setMealType(e.target.value as any)}
- className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition capitalize"
+ className="w-full bg-border-subtle border border-border-main rounded-xl px-4 py-2.5 text-sm text-text-main focus:outline-none focus:border-blue-500 transition capitalize"
  >
  <option value="breakfast">Breakfast</option>
  <option value="lunch">Lunch</option>
@@ -173,54 +173,54 @@ export default function DashboardNutrition({
  </select>
  </div>
  <div className="md:col-span-1.5 space-y-2">
- <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">Calories</label>
+ <label className="block text-xs font-medium text-text-muted uppercase tracking-wide">Calories</label>
  <input
  type="number"
  required
  value={calories}
  onChange={(e) => setCalories(e.target.value)}
  placeholder="350"
- className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition"
+ className="w-full bg-border-subtle border border-border-main rounded-xl px-4 py-2.5 text-sm text-text-main focus:outline-none focus:border-blue-500 transition"
  />
  </div>
  <div className="md:col-span-1 space-y-2">
- <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">Protein (g)</label>
+ <label className="block text-xs font-medium text-text-muted uppercase tracking-wide">Protein (g)</label>
  <input
  type="number"
  value={protein}
  onChange={(e) => setProtein(e.target.value)}
  placeholder="15"
- className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition"
+ className="w-full bg-border-subtle border border-border-main rounded-xl px-4 py-2.5 text-sm text-text-main focus:outline-none focus:border-blue-500 transition"
  />
  </div>
  <div className="md:col-span-1 space-y-2">
- <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">Carbs (g)</label>
+ <label className="block text-xs font-medium text-text-muted uppercase tracking-wide">Carbs (g)</label>
  <input
  type="number"
  value={carbs}
  onChange={(e) => setCarbs(e.target.value)}
  placeholder="40"
- className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition"
+ className="w-full bg-border-subtle border border-border-main rounded-xl px-4 py-2.5 text-sm text-text-main focus:outline-none focus:border-blue-500 transition"
  />
  </div>
  <div className="md:col-span-1 space-y-2">
- <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">Fat (g)</label>
+ <label className="block text-xs font-medium text-text-muted uppercase tracking-wide">Fat (g)</label>
  <input
  type="number"
  value={fat}
  onChange={(e) => setFat(e.target.value)}
  placeholder="8"
- className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition"
+ className="w-full bg-border-subtle border border-border-main rounded-xl px-4 py-2.5 text-sm text-text-main focus:outline-none focus:border-blue-500 transition"
  />
  </div>
  <div className="md:col-span-1 space-y-2">
- <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">Fiber (g)</label>
+ <label className="block text-xs font-medium text-text-muted uppercase tracking-wide">Fiber (g)</label>
  <input
  type="number"
  value={fiber}
  onChange={(e) => setFiber(e.target.value)}
  placeholder="4"
- className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition"
+ className="w-full bg-border-subtle border border-border-main rounded-xl px-4 py-2.5 text-sm text-text-main focus:outline-none focus:border-blue-500 transition"
  />
  </div>
  <div className="md:col-span-1.5 pt-6">
@@ -238,13 +238,13 @@ export default function DashboardNutrition({
  {/* RINGS ROW */}
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  {/* Ring 1 */}
- <div className="bg-white border border-slate-200 p-6 rounded-3xl flex items-center justify-between shadow-sm">
+ <div className="glass-panel border border-border-main p-6 rounded-3xl flex items-center justify-between shadow-sm">
  <div className="space-y-2">
- <p className="text-slate-500 text-sm font-medium">Daily Calories</p>
- <div className="text-2xl font-bold text-slate-900 ">
- {todayCalories} <span className="text-slate-400 text-sm font-medium">/ {profile.calorie_goal} kcal</span>
+ <p className="text-text-muted text-sm font-medium">Daily Calories</p>
+ <div className="text-2xl font-bold text-text-main ">
+ {todayCalories} <span className="text-text-muted text-sm font-medium">/ {profile.calorie_goal} kcal</span>
  </div>
- <p className="text-xs text-slate-500">
+ <p className="text-xs text-text-muted">
  {todayCalories >= profile.calorie_goal ? "Target met!" : `${profile.calorie_goal - todayCalories} kcal remaining`}
  </p>
  </div>
@@ -268,13 +268,13 @@ export default function DashboardNutrition({
  </div>
 
  {/* Ring 2 */}
- <div className="bg-white border border-slate-200 p-6 rounded-3xl flex items-center justify-between shadow-sm">
+ <div className="glass-panel border border-border-main p-6 rounded-3xl flex items-center justify-between shadow-sm">
  <div className="space-y-2">
- <p className="text-slate-500 text-sm font-medium">Daily Protein</p>
- <div className="text-2xl font-bold text-slate-900 ">
- {todayProtein}g <span className="text-slate-400 text-sm font-medium">/ {profile.protein_goal}g</span>
+ <p className="text-text-muted text-sm font-medium">Daily Protein</p>
+ <div className="text-2xl font-bold text-text-main ">
+ {todayProtein}g <span className="text-text-muted text-sm font-medium">/ {profile.protein_goal}g</span>
  </div>
- <p className="text-xs text-slate-500">
+ <p className="text-xs text-text-muted">
  {Math.round((todayProtein / profile.protein_goal) * 100)}% of target met
  </p>
  </div>
@@ -298,14 +298,14 @@ export default function DashboardNutrition({
  </div>
 
  {/* Health Score */}
- <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-2 shadow-sm flex flex-col justify-between">
+ <div className="glass-panel border border-border-main p-6 rounded-3xl space-y-2 shadow-sm flex flex-col justify-between">
  <div>
- <p className="text-slate-500 text-sm font-medium">Avg Health Score</p>
+ <p className="text-text-muted text-sm font-medium">Avg Health Score</p>
  <div className="text-2xl font-bold text-amber-500 pt-1">
  {avgScore} / 10
  </div>
  </div>
- <p className="text-xs text-slate-500 flex items-center gap-1.5">
+ <p className="text-xs text-text-muted flex items-center gap-1.5">
  <Heart size={14} className="text-rose-500" /> Keep eating clean!
  </p>
  </div>
@@ -313,9 +313,9 @@ export default function DashboardNutrition({
 
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
  {/* Cost Efficiency */}
- <div className="lg:col-span-7 bg-white border border-slate-200 p-6 rounded-3xl space-y-6 shadow-sm">
+ <div className="lg:col-span-7 glass-panel border border-border-main p-6 rounded-3xl space-y-6 shadow-sm">
  <div className="flex items-center justify-between">
- <h3 className="text-base font-semibold text-slate-900 ">
+ <h3 className="text-base font-semibold text-text-main ">
  Wealth-Wellness Efficiency
  </h3>
  <span className="text-xs bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-md border border-emerald-200 font-medium">
@@ -323,41 +323,41 @@ export default function DashboardNutrition({
  </span>
  </div>
 
- <p className="text-sm text-slate-500">
+ <p className="text-sm text-text-muted">
  By linking your restaurant food orders directly with your calorie and protein logs, we compute how much each unit of nutrition is costing you.
  </p>
 
  <div className="grid grid-cols-3 gap-4 text-center">
- <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
- <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">Food per 100 kcal</p>
- <p className="text-xl font-bold text-slate-900 pt-2">₹{costPer100Kcal}</p>
+ <div className="bg-border-subtle border border-border-subtle p-4 rounded-2xl">
+ <p className="text-text-muted text-xs font-medium uppercase tracking-wide">Food per 100 kcal</p>
+ <p className="text-xl font-bold text-text-main pt-2">₹{costPer100Kcal}</p>
  </div>
- <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
- <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">Food per 10g Protein</p>
+ <div className="bg-border-subtle border border-border-subtle p-4 rounded-2xl">
+ <p className="text-text-muted text-xs font-medium uppercase tracking-wide">Food per 10g Protein</p>
  <p className="text-xl font-bold text-emerald-600 pt-2">₹{costPer10gProtein}</p>
  </div>
- <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col justify-center">
- <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">Rating</p>
+ <div className="bg-border-subtle border border-border-subtle p-4 rounded-2xl flex flex-col justify-center">
+ <p className="text-text-muted text-xs font-medium uppercase tracking-wide">Rating</p>
  <p className="text-base font-bold text-amber-500 pt-2">{efficiencyRating}</p>
  </div>
  </div>
 
- <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3">
- <Sparkles size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
+ <div className="bg-accent/10 border border-accent/20 rounded-2xl p-4 flex items-start gap-3">
+ <Sparkles size={18} className="text-accent flex-shrink-0 mt-0.5" />
  <div className="space-y-1">
- <p className="text-sm font-semibold text-slate-900 ">Recommendation</p>
- <p className="text-sm text-slate-600 leading-relaxed">{efficiencyDesc}</p>
+ <p className="text-sm font-semibold text-text-main ">Recommendation</p>
+ <p className="text-sm text-text-secondary leading-relaxed">{efficiencyDesc}</p>
  </div>
  </div>
  </div>
 
  {/* Cooking vs ordering */}
- <div className="lg:col-span-5 bg-white border border-slate-200 p-6 rounded-3xl space-y-4 flex flex-col justify-between shadow-sm">
+ <div className="lg:col-span-5 glass-panel border border-border-main p-6 rounded-3xl space-y-4 flex flex-col justify-between shadow-sm">
  <div>
- <h3 className="text-base font-semibold text-slate-900 mb-3">
+ <h3 className="text-base font-semibold text-text-main mb-3">
  Cooking vs Ordering
  </h3>
- <p className="text-sm text-slate-500 leading-relaxed">
+ <p className="text-sm text-text-muted leading-relaxed">
  Based on keyword tags, home cooked meals give you a much higher average health score vs food delivery apps.
  </p>
  </div>
@@ -365,13 +365,13 @@ export default function DashboardNutrition({
  <div className="space-y-3 pt-4">
  <div className="flex justify-between text-sm font-medium">
  <span className="text-emerald-600 ">Home-cooked ({homePct}%)</span>
- <span className="text-blue-600 ">Ordering ({100 - homePct}%)</span>
+ <span className="text-accent ">Ordering ({100 - homePct}%)</span>
  </div>
- <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden flex">
+ <div className="w-full bg-border-subtle h-4 rounded-full overflow-hidden flex">
  <div className="bg-emerald-500 h-full" style={{ width: `${homePct}%` }}></div>
- <div className="bg-blue-500 h-full" style={{ width: `${100 - homePct}%` }}></div>
+ <div className="bg-accent/100 h-full" style={{ width: `${100 - homePct}%` }}></div>
  </div>
- <p className="text-xs text-slate-500 text-center">
+ <p className="text-xs text-text-muted text-center">
  Target: Maintain {`>`}75% home-cooked ratio
  </p>
  </div>
@@ -381,33 +381,33 @@ export default function DashboardNutrition({
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
  
  {/* Macros Breakdown */}
- <div className="lg:col-span-5 bg-white border border-slate-200 p-6 rounded-3xl space-y-6 shadow-sm">
- <h3 className="text-base font-semibold text-slate-900 ">
+ <div className="lg:col-span-5 glass-panel border border-border-main p-6 rounded-3xl space-y-6 shadow-sm">
+ <h3 className="text-base font-semibold text-text-main ">
  Daily Averages
  </h3>
  <div className="grid grid-cols-2 gap-4">
- <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 ">
- <span className="text-slate-500 text-xs font-medium uppercase tracking-wide block mb-1">Carbs</span>
- <span className="text-2xl font-bold text-slate-900 ">{avgCarbs}g</span>
+ <div className="bg-border-subtle p-4 rounded-2xl border border-border-subtle ">
+ <span className="text-text-muted text-xs font-medium uppercase tracking-wide block mb-1">Carbs</span>
+ <span className="text-2xl font-bold text-text-main ">{avgCarbs}g</span>
  </div>
- <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 ">
- <span className="text-slate-500 text-xs font-medium uppercase tracking-wide block mb-1">Protein</span>
+ <div className="bg-border-subtle p-4 rounded-2xl border border-border-subtle ">
+ <span className="text-text-muted text-xs font-medium uppercase tracking-wide block mb-1">Protein</span>
  <span className="text-2xl font-bold text-emerald-600 ">{avgProtein}g</span>
  </div>
- <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 ">
- <span className="text-slate-500 text-xs font-medium uppercase tracking-wide block mb-1">Fats</span>
- <span className="text-2xl font-bold text-blue-600 ">{avgFat}g</span>
+ <div className="bg-border-subtle p-4 rounded-2xl border border-border-subtle ">
+ <span className="text-text-muted text-xs font-medium uppercase tracking-wide block mb-1">Fats</span>
+ <span className="text-2xl font-bold text-accent ">{avgFat}g</span>
  </div>
- <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 ">
- <span className="text-slate-500 text-xs font-medium uppercase tracking-wide block mb-1">Fiber</span>
- <span className="text-2xl font-bold text-slate-900 ">{avgFiber}g</span>
+ <div className="bg-border-subtle p-4 rounded-2xl border border-border-subtle ">
+ <span className="text-text-muted text-xs font-medium uppercase tracking-wide block mb-1">Fiber</span>
+ <span className="text-2xl font-bold text-text-main ">{avgFiber}g</span>
  </div>
  </div>
  </div>
 
  {/* Audited Meals list */}
- <div className="lg:col-span-7 bg-white border border-slate-200 p-6 rounded-3xl space-y-6 shadow-sm">
- <h3 className="text-base font-semibold text-slate-900 ">
+ <div className="lg:col-span-7 glass-panel border border-border-main p-6 rounded-3xl space-y-6 shadow-sm">
+ <h3 className="text-base font-semibold text-text-main ">
  Diet Logs ({meals.length} meals)
  </h3>
 
@@ -416,31 +416,31 @@ export default function DashboardNutrition({
  meals.slice(0, 15).map((m) => (
  <div 
  key={m.id} 
- className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100 hover:border-slate-200 transition"
+ className="flex items-center justify-between bg-border-subtle p-4 rounded-2xl border border-border-subtle hover:border-border-main transition"
  >
  <div className="space-y-1.5 flex-1">
  <div className="flex items-center gap-2">
- <span className="font-semibold text-slate-900 capitalize text-sm">{m.name}</span>
- <span className="text-[10px] uppercase font-medium px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 ">
+ <span className="font-semibold text-text-main capitalize text-sm">{m.name}</span>
+ <span className="text-[10px] uppercase font-medium px-2 py-0.5 rounded-full bg-slate-200 text-text-secondary ">
  {m.meal_type}
  </span>
  </div>
- <p className="text-xs text-slate-500">
- {m.date} · Protein: <span className="font-semibold text-slate-700 ">{m.protein}g</span> · Carbs: {m.carbs}g
+ <p className="text-xs text-text-muted">
+ {m.date} · Protein: <span className="font-semibold text-text-secondary ">{m.protein}g</span> · Carbs: {m.carbs}g
  </p>
  </div>
  <div className="text-right space-y-1">
- <span className="font-bold text-blue-600 text-base block">
+ <span className="font-bold text-accent text-base block">
  {m.calories} kcal
  </span>
- <span className="text-xs font-medium text-slate-500">
+ <span className="text-xs font-medium text-text-muted">
  Health: <span className={m.health_score >= 8 ? "text-emerald-500" : m.health_score >= 5 ? "text-amber-500" : "text-rose-500"}>{m.health_score}/10</span>
  </span>
  </div>
  </div>
  ))
  ) : (
- <p className="text-sm text-slate-500 text-center py-12">
+ <p className="text-sm text-text-muted text-center py-12">
  No food meals logged yet.
  </p>
  )}

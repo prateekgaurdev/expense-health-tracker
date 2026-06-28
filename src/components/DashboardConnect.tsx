@@ -33,12 +33,12 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  initial={{ opacity: 0, y: 10 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.4 }}
- className="w-full text-slate-900 font-sans max-w-7xl mx-auto"
+ className="w-full text-text-main font-sans max-w-7xl mx-auto"
  >
  <div className="flex items-center justify-between mb-8">
  <div>
- <h1 className="text-3xl font-semibold tracking-tight text-slate-900 mb-1">Integrations</h1>
- <p className="text-slate-500 text-sm">Connect external platforms to log data instantly.</p>
+ <h1 className="text-3xl font-semibold tracking-tight text-text-main mb-1">Integrations</h1>
+ <p className="text-text-muted text-sm">Connect external platforms to log data instantly.</p>
  </div>
  </div>
  
@@ -48,21 +48,21 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  initial={{ opacity: 0, y: 10 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.4, delay: 0.1 }}
- className="bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm relative overflow-hidden"
+ className="glass-panel border border-border-main p-6 sm:p-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm relative overflow-hidden"
  >
- <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50/50 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+ <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10/50 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
  <div className="space-y-3 relative z-10">
  <div className="flex items-center gap-2">
- <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600">
+ <div className="p-1.5 bg-accent/10 rounded-lg text-accent">
  <MessageSquare size={16} />
  </div>
- <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Telegram Bot</p>
+ <p className="text-xs font-semibold text-accent uppercase tracking-wider">Telegram Bot</p>
  </div>
- <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">
+ <h2 className="text-2xl font-semibold text-text-main tracking-tight">
  Connect Telegram to Your Account
  </h2>
- <p className="text-sm text-slate-500 max-w-xl leading-relaxed">
+ <p className="text-sm text-text-muted max-w-xl leading-relaxed">
  Whenever you message your private Telegram bot, our servers securely process the input via Gemini and instantly reflect the entries here.
  </p>
  </div>
@@ -91,30 +91,30 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  initial={{ opacity: 0, y: 10 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.4, delay: 0.2 }}
- className="md:col-span-7 bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl space-y-8 shadow-sm relative overflow-hidden"
+ className="md:col-span-7 glass-panel border border-border-main p-6 sm:p-8 rounded-2xl space-y-8 shadow-sm relative overflow-hidden"
  >
- <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
- <div className="p-2 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg">
+ <div className="flex items-center gap-3 border-b border-border-subtle pb-4">
+ <div className="p-2 bg-border-subtle text-text-secondary border border-border-main rounded-lg">
  <Link size={18} />
  </div>
- <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
+ <h3 className="text-lg font-semibold text-text-main tracking-tight">
  Connecting in 1 Step
  </h3>
  </div>
 
  <div className="space-y-4">
- <p className="text-sm text-slate-600 leading-relaxed">
+ <p className="text-sm text-text-secondary leading-relaxed">
  Copy this command and send it directly to your Telegram bot. This pairs your Telegram chat account to this secure web dashboard session.
  </p>
 
- <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col gap-4">
+ <div className="bg-border-subtle border border-border-main rounded-xl p-6 flex flex-col gap-4">
   <div className="space-y-1">
-   <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">BotFather Access Token</span>
+   <span className="text-xs font-medium text-text-muted uppercase tracking-wider">BotFather Access Token</span>
    <input
     type="text"
     placeholder="e.g. 123456789:ABCdefGHIjklmNoPQRstUVwxyZ"
     id="bot-token-input"
-    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none font-mono shadow-sm mt-1"
+    className="w-full glass-panel border border-border-main rounded-xl px-4 py-3 text-sm text-text-main focus:border-blue-500 focus:outline-none font-mono shadow-sm mt-1"
    />
   </div>
 
@@ -145,19 +145,19 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  </div>
 
  <div className="space-y-4 pt-4">
- <h4 className="text-sm font-semibold text-slate-900 tracking-tight">What happens next:</h4>
- <ul className="space-y-4 text-sm text-slate-600">
+ <h4 className="text-sm font-semibold text-text-main tracking-tight">What happens next:</h4>
+ <ul className="space-y-4 text-sm text-text-secondary">
  <li className="flex items-start gap-4">
- <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center font-medium text-xs mt-0.5 shadow-sm">1</span>
- <span className="pt-1">Go to Telegram and message your newly created bot with <b className="text-slate-900 font-medium">/link</b>.</span>
+ <span className="flex-shrink-0 w-7 h-7 rounded-full bg-border-subtle border border-border-main text-text-secondary flex items-center justify-center font-medium text-xs mt-0.5 shadow-sm">1</span>
+ <span className="pt-1">Go to Telegram and message your newly created bot with <b className="text-text-main font-medium">/link</b>.</span>
  </li>
  <li className="flex items-start gap-4">
- <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center font-medium text-xs mt-0.5 shadow-sm">2</span>
+ <span className="flex-shrink-0 w-7 h-7 rounded-full bg-border-subtle border border-border-main text-text-secondary flex items-center justify-center font-medium text-xs mt-0.5 shadow-sm">2</span>
  <span className="pt-1">The bot will respond confirming the connection.</span>
  </li>
  <li className="flex items-start gap-4">
- <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center font-medium text-xs mt-0.5 shadow-sm">3</span>
- <span className="pt-1">You can begin messaging transactions like <b className="text-slate-900 font-medium">"swiggy 420 lunch"</b> or <b className="text-slate-900 font-medium">"ola 180 auto"</b>.</span>
+ <span className="flex-shrink-0 w-7 h-7 rounded-full bg-border-subtle border border-border-main text-text-secondary flex items-center justify-center font-medium text-xs mt-0.5 shadow-sm">3</span>
+ <span className="pt-1">You can begin messaging transactions like <b className="text-text-main font-medium">"swiggy 420 lunch"</b> or <b className="text-text-main font-medium">"ola 180 auto"</b>.</span>
  </li>
  </ul>
  </div>
@@ -168,53 +168,53 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  initial={{ opacity: 0, y: 10 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.4, delay: 0.3 }}
- className="md:col-span-5 bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl space-y-6 shadow-sm relative overflow-hidden"
+ className="md:col-span-5 glass-panel border border-border-main p-6 sm:p-8 rounded-2xl space-y-6 shadow-sm relative overflow-hidden"
  >
- <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
- <div className="p-2 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg">
+ <div className="flex items-center gap-3 border-b border-border-subtle pb-4">
+ <div className="p-2 bg-border-subtle text-text-secondary border border-border-main rounded-lg">
  <Terminal size={18} />
  </div>
- <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
+ <h3 className="text-lg font-semibold text-text-main tracking-tight">
  Bot Setup Roadmap
  </h3>
  </div>
 
- <p className="text-sm text-slate-600 leading-relaxed">
+ <p className="text-sm text-text-secondary leading-relaxed">
  Just follow these simple steps to bring your own personal FinTrack bot to life:
  </p>
 
  <div className="space-y-6 pt-2">
  <div className="flex gap-4 group">
- <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm transition-colors group-hover:border-slate-300">
+ <div className="w-8 h-8 rounded-lg bg-border-subtle border border-border-main text-sm font-semibold text-text-secondary flex items-center justify-center flex-shrink-0 shadow-sm transition-colors group-hover:border-slate-300">
  1
  </div>
  <div className="space-y-1">
- <h4 className="text-sm font-semibold text-slate-900">Create Bot</h4>
- <p className="text-sm text-slate-500 leading-relaxed">
- Go to <b className="text-slate-700 font-medium">@BotFather</b> on Telegram and send <code className="bg-slate-100 text-slate-700 border border-slate-200 px-1 py-0.5 rounded text-xs font-mono">/newbot</code>.
+ <h4 className="text-sm font-semibold text-text-main">Create Bot</h4>
+ <p className="text-sm text-text-muted leading-relaxed">
+ Go to <b className="text-text-secondary font-medium">@BotFather</b> on Telegram and send <code className="bg-border-subtle text-text-secondary border border-border-main px-1 py-0.5 rounded text-xs font-mono">/newbot</code>.
  </p>
  </div>
  </div>
 
  <div className="flex gap-4 group">
- <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm transition-colors group-hover:border-slate-300">
+ <div className="w-8 h-8 rounded-lg bg-border-subtle border border-border-main text-sm font-semibold text-text-secondary flex items-center justify-center flex-shrink-0 shadow-sm transition-colors group-hover:border-slate-300">
  2
  </div>
  <div className="space-y-1">
- <h4 className="text-sm font-semibold text-slate-900">Copy Token</h4>
- <p className="text-sm text-slate-500 leading-relaxed">
+ <h4 className="text-sm font-semibold text-text-main">Copy Token</h4>
+ <p className="text-sm text-text-muted leading-relaxed">
  After naming your bot, BotFather will give you a long API Token (e.g. `1234:ABC...`). Copy it.
  </p>
  </div>
  </div>
 
  <div className="flex gap-4 group">
- <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm transition-colors group-hover:border-slate-300">
+ <div className="w-8 h-8 rounded-lg bg-border-subtle border border-border-main text-sm font-semibold text-text-secondary flex items-center justify-center flex-shrink-0 shadow-sm transition-colors group-hover:border-slate-300">
  3
  </div>
  <div className="space-y-1">
- <h4 className="text-sm font-semibold text-slate-900">Link Here</h4>
- <p className="text-sm text-slate-500 leading-relaxed">
+ <h4 className="text-sm font-semibold text-text-main">Link Here</h4>
+ <p className="text-sm text-text-muted leading-relaxed">
  Paste that token into the input field on the left and click "Link My Bot". We will automatically register it for you!
  </p>
  </div>

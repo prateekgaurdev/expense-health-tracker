@@ -5,22 +5,20 @@
 
 import React, { useState, useEffect } from "react";
 import { 
- Bot, 
- User, 
- Coins, 
- Utensils, 
- Link as LinkIcon, 
- MessageSquare, 
- LogOut, 
- ChevronRight,
- Flame,
- LayoutDashboard,
- Sparkles
+  Bot, 
+  User, 
+  Coins, 
+  Utensils, 
+  Link as LinkIcon, 
+  LogOut, 
+  LayoutDashboard,
+  Sun,
+  Moon
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
+import { motion, AnimatePresence } from "motion/react";
 
 import { Profile, Transaction, Meal } from "./types";
-import { mockProfile, generateMockData } from "./mockData";
 
 // Import Modular Components
 import LandingPage from "./components/LandingPage";
@@ -31,466 +29,414 @@ import DashboardNutrition from "./components/DashboardNutrition";
 import DashboardAssist from "./components/DashboardAssist";
 import DashboardConnect from "./components/DashboardConnect";
 
-let supabaseClientInstance: any = null;
+// Initialize Supabase from Env Variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = (supabaseUrl && supabaseAnonKey) 
+  ? createClient(supabaseUrl, supabaseAnonKey) 
+  : null;
 
 export default function App() {
- const [route, setRoute] = useState<"landing" | "auth" | "dashboard">("landing");
- const [dashboardTab, setDashboardTab] = useState<"overview" | "money" | "nutrition" | "assist" | "connect">("overview");
+  const [route, setRoute] = useState<"landing" | "auth" | "dashboard">("landing");
+  const [dashboardTab, setDashboardTab] = useState<"overview" | "money" | "nutrition" | "assist" | "connect">("overview");
 
- // Core App State
- const [profile, setProfile] = useState<Profile | null>(null);
- const [transactions, setTransactions] = useState<Transaction[]>([]);
- const [meals, setMeals] = useState<Meal[]>([]);
+  // Core App State
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [meals, setMeals] = useState<Meal[]>([]);
 
- // Theme State
- const [theme, setTheme] = useState<"light" | "dark">(
- () => (localStorage.getItem("fintrack_theme") as "light" | "dark") || "light"
- );
+  // Theme State
+  const [theme, setTheme] = useState<"light" | "dark">(
+    () => (localStorage.getItem("fintrack_theme") as "light" | "dark") || "light"
+  );
 
- useEffect(() => {
- const root = window.document.documentElement;
- root.classList.remove("light", "dark");
- root.classList.add(theme);
- localStorage.setItem("fintrack_theme", theme);
- }, [theme]);
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(theme);
+    localStorage.setItem("fintrack_theme", theme);
+  }, [theme]);
 
- // Supabase dynamic config
- const [mode, setMode] = useState<"sandbox" | "supabase">("sandbox");
- const [supabaseUrl, setSupabaseUrl] = useState("");
- const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
+  const toggleTheme = () => {
+    setTheme(prev => prev === "light" ? "dark" : "light");
+  };
 
- // Attempt auto-login if Supabase keys exist in localStorage
- useEffect(() => {
- const savedUrl = localStorage.getItem("fintrack_supabase_url");
- const savedKey = localStorage.getItem("fintrack_supabase_key");
- const savedMode = localStorage.getItem("fintrack_mode") as "sandbox" | "supabase";
+  // Attempt auto-login if Session exists
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data: { session } }: any) => {
+      if (session) {
+        loadSupabaseUserData(session.user.id, session.user.email || "");
+      }
+    });
+  }, []);
 
- if (savedMode === "sandbox") {
- // Auto-load Sandbox Session
- handleSandboxLaunch("Gummy Bear");
- } else if (savedMode === "supabase" && savedUrl && savedKey) {
- setMode("supabase");
- setSupabaseUrl(savedUrl);
- setSupabaseAnonKey(savedKey);
- 
- try {
- supabaseClientInstance = createClient(savedUrl, savedKey);
- // Attempt getting current session
- supabaseClientInstance.auth.getSession().then(({ data: { session } }: any) => {
- if (session) {
- loadSupabaseUserData(session.user.id, session.user.email || "");
- }
- });
- } catch (err) {
- console.error("Auto-Supabase Client initialization failed:", err);
- }
- }
- }, []);
+  const handleAuthenticate = async (params: { email?: string; password?: string; isSignUp?: boolean; name?: string }) => {
+    if (!supabase) return { success: false, error: "Database configuration missing." };
+    if (!params.email || !params.password) return { success: false, error: "Email and password required." };
 
- const handleSandboxLaunch = (customName?: string) => {
- setMode("sandbox");
- localStorage.setItem("fintrack_mode", "sandbox");
- 
- // Seed with rich mock datasets
- const sandboxProfile: Profile = {
- ...mockProfile,
- name: customName || "Gummy Bear",
- };
- const { transactions: mockTxns, meals: mockMeals } = generateMockData();
+    if (params.isSignUp) {
+      const { data, error } = await supabase.auth.signUp({
+        email: params.email,
+        password: params.password,
+        options: {
+          data: { name: params.name || params.email.split("@")[0] }
+        }
+      });
+      if (error) return { success: false, error: error.message };
+      if (data.user) {
+        await loadSupabaseUserData(data.user.id, data.user.email || "");
+        return { success: true };
+      }
+    } else {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: params.email,
+        password: params.password,
+      });
+      if (error) return { success: false, error: error.message };
+      if (data.user) {
+        await loadSupabaseUserData(data.user.id, data.user.email || "");
+        return { success: true };
+      }
+    }
+    return { success: false, error: "Unknown error occurred" };
+  };
 
- setProfile(sandboxProfile);
- setTransactions(mockTxns);
- setMeals(mockMeals);
- setRoute("dashboard");
- };
+  const loadSupabaseUserData = async (userId: string, email: string) => {
+    if (!supabase) return;
 
- const loadSupabaseUserData = async (userId: string, email: string) => {
- if (!supabaseClientInstance) return;
+    try {
+      // 1. Fetch or create Profile
+      let { data: profileData, error: profileErr } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
- try {
- // 1. Fetch or create Profile
- let { data: profileData, error: profileErr } = await supabaseClientInstance
- .from("profiles")
- .select("*")
- .eq("id", userId)
- .single();
+      if (profileErr || !profileData) {
+        const { data: { user } } = await supabase.auth.getUser();
+        const userName = user?.user_metadata?.name || email.split("@")[0];
+        
+        const defaultProfile = {
+          id: userId,
+          email: email,
+          name: userName,
+          monthly_budget: 35000,
+          calorie_goal: 2200,
+          protein_goal: 110,
+          link_code: `FT-${Math.floor(1000 + Math.random() * 9000)}`,
+        };
 
- if (profileErr || !profileData) {
- // Create initial default profile
- const defaultProfile = {
- id: userId,
- email: email,
- name: email.split("@")[0],
- monthly_budget: 35000,
- calorie_goal: 2200,
- protein_goal: 110,
- link_code: `FT-${Math.floor(1000 + Math.random() * 9000)}`,
- };
+        const { data: newProfile, error: createErr } = await supabase
+          .from("profiles")
+          .insert([defaultProfile])
+          .select("*")
+          .single();
 
- const { data: newProfile, error: createErr } = await supabaseClientInstance
- .from("profiles")
- .insert([defaultProfile])
- .select("*")
- .single();
+        if (createErr) throw createErr;
+        profileData = newProfile;
+      }
 
- if (createErr) throw createErr;
- profileData = newProfile;
- }
+      setProfile(profileData);
 
- setProfile(profileData);
+      // 2. Fetch Transactions
+      const { data: txnsData } = await supabase
+        .from("transactions")
+        .select("*")
+        .order("date", { ascending: false });
+      
+      setTransactions(txnsData || []);
 
- // 2. Fetch Transactions
- const { data: txnsData } = await supabaseClientInstance
- .from("transactions")
- .select("*")
- .order("date", { ascending: false });
- 
- setTransactions(txnsData || []);
+      // 3. Fetch Meals
+      const { data: mealsData } = await supabase
+        .from("meals")
+        .select("*")
+        .order("date", { ascending: false });
 
- // 3. Fetch Meals
- const { data: mealsData } = await supabaseClientInstance
- .from("meals")
- .select("*")
- .order("date", { ascending: false });
+      setMeals(mealsData || []);
+      setRoute("dashboard");
+      setupRealtimeSubscriptions(userId);
 
- setMeals(mealsData || []);
+    } catch (err) {
+      console.error("Error loading user database tables:", err);
+    }
+  };
 
- setRoute("dashboard");
+  const setupRealtimeSubscriptions = (userId: string) => {
+    if (!supabase) return;
 
- // Setup realtime push subscription
- setupRealtimeSubscriptions(userId);
+    supabase
+      .channel("transactions-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "transactions", filter: `profile_id=eq.${userId}` },
+        (payload: any) => {
+          if (payload.eventType === "INSERT") {
+            setTransactions((prev) => [payload.new as Transaction, ...prev]);
+          } else if (payload.eventType === "DELETE") {
+            setTransactions((prev) => prev.filter((t) => t.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
 
- } catch (err) {
- console.error("Error loading user database tables:", err);
- }
- };
+    supabase
+      .channel("meals-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "meals", filter: `profile_id=eq.${userId}` },
+        (payload: any) => {
+          if (payload.eventType === "INSERT") {
+            setMeals((prev) => [payload.new as Meal, ...prev]);
+          } else if (payload.eventType === "DELETE") {
+            setMeals((prev) => prev.filter((m) => m.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+  };
 
- const setupRealtimeSubscriptions = (userId: string) => {
- if (!supabaseClientInstance) return;
+  const handleAddTransaction = async (newTxn: Transaction) => {
+    setTransactions([newTxn, ...transactions]);
+    if (supabase) {
+      try {
+        const { error } = await supabase.from("transactions").insert([newTxn]);
+        if (error) throw error;
+      } catch (err) {
+        console.error("Error inserting transaction to Supabase:", err);
+      }
+    }
+  };
 
- // Realtime channel for Transactions
- const txnChannel = supabaseClientInstance
- .channel("transactions-changes")
- .on(
- "postgres_changes",
- { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${userId}` },
- (payload: any) => {
- if (payload.eventType === "INSERT") {
- setTransactions((prev) => [payload.new as Transaction, ...prev]);
- } else if (payload.eventType === "DELETE") {
- setTransactions((prev) => prev.filter((t) => t.id !== payload.old.id));
- }
- }
- )
- .subscribe();
+  const handleAddMeal = async (newMeal: Meal) => {
+    setMeals([newMeal, ...meals]);
+    if (supabase) {
+      try {
+        const { error } = await supabase.from("meals").insert([newMeal]);
+        if (error) throw error;
+      } catch (err) {
+        console.error("Error inserting meal to Supabase:", err);
+      }
+    }
+  };
 
- // Realtime channel for Meals
- const mealsChannel = supabaseClientInstance
- .channel("meals-changes")
- .on(
- "postgres_changes",
- { event: "*", schema: "public", table: "meals", filter: `user_id=eq.${userId}` },
- (payload: any) => {
- if (payload.eventType === "INSERT") {
- setMeals((prev) => [payload.new as Meal, ...prev]);
- } else if (payload.eventType === "DELETE") {
- setMeals((prev) => prev.filter((m) => m.id !== payload.old.id));
- }
- }
- )
- .subscribe();
+  const handleLogout = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    setProfile(null);
+    setTransactions([]);
+    setMeals([]);
+    setRoute("landing");
+  };
 
- return () => {
- supabaseClientInstance.removeChannel(txnChannel);
- supabaseClientInstance.removeChannel(mealsChannel);
- };
- };
+  // Rendering Routing Views
+  if (route === "landing") {
+    return (
+      <LandingPage 
+        onGetStarted={() => setRoute("auth")} 
+        onLogin={() => setRoute("auth")} 
+        theme={theme}
+        toggleTheme={toggleTheme}
+      />
+    );
+  }
 
- const handleAuthenticate = async (params: {
- mode: "sandbox" | "supabase";
- url?: string;
- anonKey?: string;
- email?: string;
- password?: string;
- isSignUp?: boolean;
- name?: string;
- }): Promise<{ success: boolean; error?: string }> => {
- if (params.mode === "sandbox") {
- handleSandboxLaunch(params.name);
- return { success: true };
- }
+  if (route === "auth") {
+    return (
+      <AuthPage 
+        onBack={() => setRoute("landing")} 
+        onAuthenticate={handleAuthenticate}
+      />
+    );
+  }
 
- // Supabase mode
- if (!params.url || !params.anonKey || !params.email || !params.password) {
- return { success: false, error: "Please configure all required fields." };
- }
+  return (
+    <div className="min-h-screen bg-bg-app text-text-main flex font-sans overflow-hidden transition-colors duration-500 relative">
+      <div className="grid-bg"></div>
 
- try {
- supabaseClientInstance = createClient(params.url, params.anonKey);
- setSupabaseUrl(params.url);
- setSupabaseAnonKey(params.anonKey);
+      {/* SIDEBAR NAVIGATION PANEL */}
+      <aside className="w-64 glass-panel flex flex-col shrink-0 relative z-20 h-screen rounded-none border-t-0 border-b-0 border-l-0">
+        {/* Brand label */}
+        <div className="p-8 pb-10">
+          <h1 className="font-display font-extrabold text-2xl flex items-center gap-2 text-accent">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="10" width="4" height="10" rx="2" fill="currentColor" />
+              <rect x="8" y="5" width="4" height="15" rx="2" fill="currentColor" />
+              <rect x="14" y="14" width="4" height="6" rx="2" fill="currentColor" />
+            </svg>
+            Fin<span className="text-text-main">Track</span>
+          </h1>
+        </div>
 
- let authResult;
- if (params.isSignUp) {
- authResult = await supabaseClientInstance.auth.signUp({
- email: params.email,
- password: params.password,
- options: {
- data: {
- name: params.name || params.email.split("@")[0],
- }
- }
- });
- } else {
- authResult = await supabaseClientInstance.auth.signInWithPassword({
- email: params.email,
- password: params.password,
- });
- }
+        {/* Nav list */}
+        <nav className="flex-1 space-y-1 px-4 flex flex-col gap-1">
+          <button
+            onClick={() => setDashboardTab("overview")}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+              dashboardTab === "overview"
+                ? "bg-bg-btn text-accent shadow-sm"
+                : "text-text-secondary hover:text-text-main hover:bg-border-subtle"
+            }`}
+          >
+            <LayoutDashboard size={18} className={dashboardTab === "overview" ? "text-accent" : "text-text-muted"} /> Overview
+          </button>
 
- if (authResult.error) {
- return { success: false, error: authResult.error.message };
- }
+          <button
+            onClick={() => setDashboardTab("money")}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+              dashboardTab === "money"
+                ? "bg-bg-btn text-accent shadow-sm"
+                : "text-text-secondary hover:text-text-main hover:bg-border-subtle"
+            }`}
+          >
+            <Coins size={18} className={dashboardTab === "money" ? "text-accent" : "text-text-muted"} /> Money Ledger
+          </button>
 
- const user = authResult.data.user;
- if (!user) {
- return { success: false, error: "Authentication failed. No user found." };
- }
+          <button
+            onClick={() => setDashboardTab("nutrition")}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+              dashboardTab === "nutrition"
+                ? "bg-bg-btn text-accent shadow-sm"
+                : "text-text-secondary hover:text-text-main hover:bg-border-subtle"
+            }`}
+          >
+            <Utensils size={18} className={dashboardTab === "nutrition" ? "text-accent" : "text-text-muted"} /> Nutrition
+          </button>
 
- // Save credentials in browser localStorage for ease of revisit
- localStorage.setItem("fintrack_mode", "supabase");
- localStorage.setItem("fintrack_supabase_url", params.url);
- localStorage.setItem("fintrack_supabase_key", params.anonKey);
- setMode("supabase");
+          <button
+            onClick={() => setDashboardTab("assist")}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+              dashboardTab === "assist"
+                ? "bg-bg-btn text-accent shadow-sm"
+                : "text-text-secondary hover:text-text-main hover:bg-border-subtle"
+            }`}
+          >
+            <Bot size={18} className={dashboardTab === "assist" ? "text-accent" : "text-text-muted"} /> AI Assist
+          </button>
 
- // Load Tables
- await loadSupabaseUserData(user.id, user.email || "");
- return { success: true };
+          <button
+            onClick={() => setDashboardTab("connect")}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+              dashboardTab === "connect"
+                ? "bg-bg-btn text-accent shadow-sm"
+                : "text-text-secondary hover:text-text-main hover:bg-border-subtle"
+            }`}
+          >
+            <LinkIcon size={18} className={dashboardTab === "connect" ? "text-accent" : "text-text-muted"} /> Integrations
+          </button>
+        </nav>
 
- } catch (err: any) {
- console.error(err);
- return { success: false, error: err?.message || "Check connection URL and try again." };
- }
- };
+        {/* User profile footer bar */}
+        <div className="p-4 mt-auto">
+          <div className="flex items-center justify-between p-3 bg-bg-app hover:bg-border-subtle border border-border-main rounded-xl transition cursor-pointer group">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-border-subtle flex items-center justify-center shrink-0">
+                <User size={16} className="text-text-muted" />
+              </div>
+              <div className="overflow-hidden">
+                <p className="text-sm font-medium text-text-main truncate">{profile?.name || "User"}</p>
+                <p className="text-xs text-text-muted truncate">{profile?.email || "Account"}</p>
+              </div>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="text-text-muted hover:text-rose-500 transition opacity-0 group-hover:opacity-100"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        </div>
+      </aside>
 
- const handleAddTransaction = async (newTxn: Transaction) => {
- // Optimistically update frontend state immediately
- setTransactions((prev) => [newTxn, ...prev]);
+      {/* MAIN SYSTEM BODY */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden relative z-10">
+        {/* Top Header details */}
+        <header className="h-[76px] flex-shrink-0 glass-header flex items-center justify-between px-8">
+          <div className="text-xl font-bold text-text-main capitalize font-display">
+            {dashboardTab}
+          </div>
+          
+          {/* THEME TOGGLE BUTTON */}
+          <div className="flex items-center gap-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleTheme}
+              className="p-2.5 rounded-full bg-bg-btn border border-border-main text-text-secondary hover:text-accent transition-colors shadow-sm"
+              aria-label="Toggle Theme"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {theme === "light" ? (
+                  <motion.div
+                    key="sun"
+                    initial={{ y: -20, opacity: 0, rotate: -90 }}
+                    animate={{ y: 0, opacity: 1, rotate: 0 }}
+                    exit={{ y: 20, opacity: 0, rotate: 90 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Sun size={20} />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="moon"
+                    initial={{ y: -20, opacity: 0, rotate: -90 }}
+                    animate={{ y: 0, opacity: 1, rotate: 0 }}
+                    exit={{ y: 20, opacity: 0, rotate: 90 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Moon size={20} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </div>
+        </header>
 
- if (mode === "supabase" && supabaseClientInstance) {
- try {
- const { error } = await supabaseClientInstance
- .from("transactions")
- .insert([newTxn]);
- if (error) throw error;
- } catch (err) {
- console.error("Error inserting transaction to Supabase:", err);
- }
- }
- };
+        {/* View area container */}
+        <div className="flex-1 overflow-y-auto p-10 relative">
+          <div className="max-w-[1100px] mx-auto">
+            {dashboardTab === "overview" && (
+              <DashboardOverview 
+                profile={profile!} 
+                transactions={transactions} 
+                meals={meals} 
+                onAddTransaction={handleAddTransaction}
+                onAddMeal={handleAddMeal}
+              />
+            )}
 
- const handleAddMeal = async (newMeal: Meal) => {
- // Optimistically update frontend state immediately
- setMeals((prev) => [newMeal, ...prev]);
+            {dashboardTab === "money" && (
+              <DashboardMoney 
+                profile={profile!} 
+                transactions={transactions} 
+                onAddTransaction={handleAddTransaction}
+              />
+            )}
 
- if (mode === "supabase" && supabaseClientInstance) {
- try {
- const { error } = await supabaseClientInstance
- .from("meals")
- .insert([newMeal]);
- if (error) throw error;
- } catch (err) {
- console.error("Error inserting meal to Supabase:", err);
- }
- }
- };
+            {dashboardTab === "nutrition" && (
+              <DashboardNutrition 
+                profile={profile!} 
+                meals={meals} 
+                transactions={transactions} 
+                onAddMeal={handleAddMeal}
+              />
+            )}
 
- const handleLogout = async () => {
- if (mode === "supabase" && supabaseClientInstance) {
- await supabaseClientInstance.auth.signOut();
- }
- 
- // Clear credentials & state
- localStorage.removeItem("fintrack_mode");
- localStorage.removeItem("fintrack_supabase_url");
- localStorage.removeItem("fintrack_supabase_key");
- supabaseClientInstance = null;
+            {dashboardTab === "assist" && (
+              <DashboardAssist 
+                profile={profile!} 
+                transactions={transactions} 
+                meals={meals} 
+              />
+            )}
 
- setProfile(null);
- setTransactions([]);
- setMeals([]);
- setRoute("landing");
- };
-
- // Rendering Routing Views
- if (route === "landing") {
- return (
- <LandingPage 
- onGetStarted={() => setRoute("auth")} 
- onLogin={() => setRoute("auth")} 
- />
- );
- }
-
- if (route === "auth") {
- return (
- <AuthPage 
- onBack={() => setRoute("landing")} 
- onAuthenticate={handleAuthenticate}
- />
- );
- }
-
- return (
- <div className="min-h-screen bg-[#f9f9ff] text-slate-900 flex font-sans overflow-hidden">
- 
- {/* SIDEBAR NAVIGATION PANEL */}
- <aside className="w-64 bg-white border-r border-[#E2E8F0] flex flex-col shrink-0 relative z-20 h-screen">
- {/* Brand label */}
- <div className="p-8 pb-10">
- <h1 className="font-sans font-extrabold text-2xl flex items-center gap-2">
- <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
- <rect x="2" y="10" width="4" height="10" rx="2" fill="#191c21" className="" />
- <rect x="8" y="5" width="4" height="15" rx="2" fill="#191c21" className="" />
- <rect x="14" y="14" width="4" height="6" rx="2" fill="#191c21" className="" />
- </svg>
- FinTrack
- </h1>
- </div>
-
- {/* Nav list */}
- <nav className="flex-1 space-y-1 px-4 flex flex-col gap-1">
- <button
- onClick={() => setDashboardTab("overview")}
- className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
- dashboardTab === "overview"
- ? "bg-slate-100 text-slate-900 "
- : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
- }`}
- >
- <LayoutDashboard size={18} className={dashboardTab === "overview" ? "text-slate-900 " : "text-slate-400"} /> Overview
- </button>
-
- <button
- onClick={() => setDashboardTab("money")}
- className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
- dashboardTab === "money"
- ? "bg-slate-100 text-slate-900 "
- : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
- }`}
- >
- <Coins size={18} className={dashboardTab === "money" ? "text-slate-900 " : "text-slate-400"} /> Money Ledger
- </button>
-
- <button
- onClick={() => setDashboardTab("nutrition")}
- className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
- dashboardTab === "nutrition"
- ? "bg-slate-100 text-slate-900 "
- : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
- }`}
- >
- <Utensils size={18} className={dashboardTab === "nutrition" ? "text-slate-900 " : "text-slate-400"} /> Nutrition
- </button>
-
- <button
- onClick={() => setDashboardTab("assist")}
- className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
- dashboardTab === "assist"
- ? "bg-slate-100 text-slate-900 "
- : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
- }`}
- >
- <Bot size={18} className={dashboardTab === "assist" ? "text-slate-900 " : "text-slate-400"} /> AI Assist
- </button>
-
- <button
- onClick={() => setDashboardTab("connect")}
- className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
- dashboardTab === "connect"
- ? "bg-slate-100 text-slate-900 "
- : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
- }`}
- >
- <LinkIcon size={18} className={dashboardTab === "connect" ? "text-slate-900 " : "text-slate-400"} /> Connect Integrations
- </button>
- </nav>
-
- {/* User profile footer bar */}
- <div className="p-4 mt-auto">
- <div className="flex items-center justify-between p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition cursor-pointer group">
- <div className="flex items-center gap-3">
- <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
- <User size={16} className="text-slate-600 " />
- </div>
- <div className="overflow-hidden">
- <p className="text-sm font-medium text-slate-900 truncate">{profile?.name || "My Account"}</p>
- <p className="text-xs text-slate-500 truncate">{profile?.email || "Personal Workspace"}</p>
- </div>
- </div>
- <button 
- onClick={handleLogout}
- className="text-slate-400 hover:text-slate-700 transition opacity-0 group-hover:opacity-100"
- >
- <LogOut size={16} />
- </button>
- </div>
- </div>
- </aside>
-
- {/* MAIN SYSTEM BODY */}
- <main className="flex-1 flex flex-col h-screen overflow-hidden">
- {/* Top Header details */}
- <header className="h-[68px] flex-shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-8">
- <div className="text-lg font-semibold text-slate-900 capitalize font-sans">
- {dashboardTab}
- </div>
- </header>
-
- {/* View area container */}
- <div className="flex-1 overflow-y-auto p-10 bg-[#f9f9ff] ">
- <div className="max-w-[1100px]">
- {dashboardTab === "overview" && (
- <DashboardOverview 
- profile={profile!} 
- transactions={transactions} 
- meals={meals} 
- onAddTransaction={handleAddTransaction}
- onAddMeal={handleAddMeal}
- />
- )}
-
- {dashboardTab === "money" && (
- <DashboardMoney 
- profile={profile!} 
- transactions={transactions} 
- onAddTransaction={handleAddTransaction}
- />
- )}
-
- {dashboardTab === "nutrition" && (
- <DashboardNutrition 
- profile={profile!} 
- meals={meals} 
- transactions={transactions} 
- onAddMeal={handleAddMeal}
- />
- )}
-
- {dashboardTab === "assist" && (
- <DashboardAssist 
- profile={profile!} 
- transactions={transactions} 
- meals={meals} 
- />
- )}
-
- {dashboardTab === "connect" && (
- <DashboardConnect profile={profile!} />
- )}
- </div>
- </div>
- </main>
- </div>
- );
+            {dashboardTab === "connect" && (
+              <DashboardConnect profile={profile!} />
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }

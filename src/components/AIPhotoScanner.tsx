@@ -188,13 +188,13 @@ export default function AIPhotoScanner({
             AI Photo Scanner
           </h3>
         </div>
-        <span className="text-[10px] text-slate-500 font-mono uppercase bg-slate-900 px-2.5 py-1 rounded border border-slate-800 flex items-center gap-1">
+        <span className="text-[10px] text-text-muted font-mono uppercase bg-slate-900 px-2.5 py-1 rounded border border-slate-800 flex items-center gap-1">
           Powered by Gemini 3.5 Flash
         </span>
       </div>
 
       <div className="p-6 space-y-5">
-        <p className="text-xs text-slate-400 font-sans leading-relaxed">
+        <p className="text-xs text-text-muted font-sans leading-relaxed">
           Upload or drop a picture of any bill/receipt to extract merchants and spending, or a picture of your food plate to estimate calories and macros instantly.
         </p>
 
@@ -208,7 +208,7 @@ export default function AIPhotoScanner({
                 className={`flex-1 py-2 text-xs font-mono capitalize font-bold rounded-lg transition ${
                   scanType === type
                     ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                    : "text-slate-500 hover:text-slate-300"
+                    : "text-text-muted hover:text-slate-300"
                 }`}
               >
                 {type === "auto" ? "⚡ Auto Detect" : type === "bill" ? "🧾 Scan Bill" : "🥗 Scan Meal"}
@@ -232,13 +232,13 @@ export default function AIPhotoScanner({
               accept="image/*"
               className="hidden"
             />
-            <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 group-hover:text-emerald-400 group-hover:border-emerald-500/20 mb-4 transition">
+            <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-text-muted group-hover:text-emerald-400 group-hover:border-emerald-500/20 mb-4 transition">
               <Upload className="w-5 h-5" />
             </div>
             <h4 className="text-xs font-mono font-bold text-slate-300 group-hover:text-white transition">
               Drag & Drop Photo or Click to Browse
             </h4>
-            <p className="text-[10px] text-slate-500 font-mono mt-1">
+            <p className="text-[10px] text-text-muted font-mono mt-1">
               Supports PNG, JPG, JPEG, WEBP up to 20MB
             </p>
           </div>
@@ -306,7 +306,7 @@ export default function AIPhotoScanner({
                 {scannedResult.detected_type === "bill" && scannedResult.transaction ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] text-slate-500 font-mono uppercase">Merchant</label>
+                      <label className="text-[10px] text-text-muted font-mono uppercase">Merchant</label>
                       <input
                         type="text"
                         value={scannedResult.transaction.merchant}
@@ -319,7 +319,7 @@ export default function AIPhotoScanner({
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] text-slate-500 font-mono uppercase">Total Amount (₹)</label>
+                      <label className="text-[10px] text-text-muted font-mono uppercase">Total Amount (₹)</label>
                       <input
                         type="number"
                         value={scannedResult.transaction.amount}
@@ -332,7 +332,7 @@ export default function AIPhotoScanner({
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] text-slate-500 font-mono uppercase">Date</label>
+                      <label className="text-[10px] text-text-muted font-mono uppercase">Date</label>
                       <input
                         type="date"
                         value={scannedResult.transaction.date}
@@ -345,7 +345,7 @@ export default function AIPhotoScanner({
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] text-slate-500 font-mono uppercase">Suggested Category</label>
+                      <label className="text-[10px] text-text-muted font-mono uppercase">Suggested Category</label>
                       <input
                         type="text"
                         value={scannedResult.transaction.category}
@@ -358,7 +358,7 @@ export default function AIPhotoScanner({
                       />
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-1">
-                      <label className="text-[10px] text-slate-500 font-mono uppercase">Note Details</label>
+                      <label className="text-[10px] text-text-muted font-mono uppercase">Note Details</label>
                       <input
                         type="text"
                         value={scannedResult.transaction.note}
@@ -375,7 +375,7 @@ export default function AIPhotoScanner({
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1 col-span-1 md:col-span-2">
-                        <label className="text-[10px] text-slate-500 font-mono uppercase">Meal Dish Name</label>
+                        <label className="text-[10px] text-text-muted font-mono uppercase">Meal Dish Name</label>
                         <input
                           type="text"
                           value={scannedResult.meal.name}
@@ -388,7 +388,7 @@ export default function AIPhotoScanner({
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 font-mono uppercase">Estimated Calories (kcal)</label>
+                        <label className="text-[10px] text-text-muted font-mono uppercase">Estimated Calories (kcal)</label>
                         <input
                           type="number"
                           value={scannedResult.meal.calories}
@@ -401,7 +401,7 @@ export default function AIPhotoScanner({
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 font-mono uppercase">Protein (g)</label>
+                        <label className="text-[10px] text-text-muted font-mono uppercase">Protein (g)</label>
                         <input
                           type="number"
                           value={scannedResult.meal.protein}
@@ -414,7 +414,7 @@ export default function AIPhotoScanner({
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 font-mono uppercase">Carbohydrates (g)</label>
+                        <label className="text-[10px] text-text-muted font-mono uppercase">Carbohydrates (g)</label>
                         <input
                           type="number"
                           value={scannedResult.meal.carbs}
@@ -427,7 +427,7 @@ export default function AIPhotoScanner({
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 font-mono uppercase">Fat (g)</label>
+                        <label className="text-[10px] text-text-muted font-mono uppercase">Fat (g)</label>
                         <input
                           type="number"
                           value={scannedResult.meal.fat}
@@ -440,7 +440,7 @@ export default function AIPhotoScanner({
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 font-mono uppercase">Health Score (1 to 10)</label>
+                        <label className="text-[10px] text-text-muted font-mono uppercase">Health Score (1 to 10)</label>
                         <input
                           type="number"
                           min="1"
@@ -455,7 +455,7 @@ export default function AIPhotoScanner({
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 font-mono uppercase">Meal Type</label>
+                        <label className="text-[10px] text-text-muted font-mono uppercase">Meal Type</label>
                         <select
                           value={scannedResult.meal.meal_type}
                           onChange={(e) => {
