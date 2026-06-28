@@ -72,7 +72,7 @@ export default function DashboardAchievements({
  id="fintrack_gamification_panel" className="space-y-6 font-sans">
  
  {/* 1. STREAK SUMMARY PANEL */}
- <div className="bg-gradient-to-br from-slate-50 to-slate-100 border border-border-main rounded-3xl p-6 relative overflow-hidden shadow-xl">
+ <div className="glass-panel border border-border-main rounded-3xl p-6 relative overflow-hidden shadow-xl">
  <div className="absolute right-0 top-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
  <div className="absolute left-10 bottom-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -130,7 +130,7 @@ export default function DashboardAchievements({
  day.active
  ? "bg-emerald-500/20 border-emerald-500 text-emerald-600 shadow-lg shadow-emerald-500/5 font-bold"
  : isToday
- ? "glass-panel border-slate-300 text-text-secondary"
+ ? "glass-panel border-border-main text-text-secondary"
  : "glass-panel border-border-main text-text-secondary"
  }`}
  >

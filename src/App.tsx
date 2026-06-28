@@ -62,13 +62,27 @@ export default function App() {
   };
 
   // Attempt auto-login if Session exists
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+
   useEffect(() => {
-    if (!supabase) return;
-    supabase.auth.getSession().then(({ data: { session } }: any) => {
+    if (!supabase) {
+      setIsLoadingAuth(false);
+      return;
+    }
+    
+    // Listen for auth state changes (login, logout, refresh token)
+    // This automatically fires an INITIAL_SESSION event on mount, so we don't need a separate getSession() call.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         loadSupabaseUserData(session.user.id, session.user.email || "");
+      } else {
+        setProfile(null);
+        setRoute("landing");
+        setIsLoadingAuth(false);
       }
     });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleAuthenticate = async (params: { email?: string; password?: string; isSignUp?: boolean; name?: string }) => {
@@ -162,19 +176,27 @@ export default function App() {
       setRoute("dashboard");
       setupRealtimeSubscriptions(userId);
 
-    } catch (err) {
-      console.error("Error loading user database tables:", err);
+    } catch (err: any) {
+      console.error("Error loading user database tables:", err.message || "Unknown error");
+    } finally {
+      setIsLoadingAuth(false);
     }
   };
 
   const setupRealtimeSubscriptions = async (userId: string) => {
     if (!supabase) return;
 
-    // Clean up existing channels to prevent duplicate subscription errors in React Strict Mode
-    await supabase.removeAllChannels();
+    const txChannelName = `transactions-${userId}`;
+    const mealChannelName = `meals-${userId}`;
+
+    // Prevent duplicate subscriptions and WebSocket race conditions by checking if channels exist
+    const activeChannels = supabase.getChannels();
+    if (activeChannels.some(c => c.topic === `realtime:${txChannelName}`)) {
+      return;
+    }
 
     supabase
-      .channel(`transactions-${userId}`)
+      .channel(txChannelName)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "transactions", filter: `profile_id=eq.${userId}` },
@@ -183,13 +205,15 @@ export default function App() {
             setTransactions((prev) => [payload.new as Transaction, ...prev]);
           } else if (payload.eventType === "DELETE") {
             setTransactions((prev) => prev.filter((t) => t.id !== payload.old.id));
+          } else if (payload.eventType === "UPDATE") {
+            setTransactions((prev) => prev.map((t) => t.id === payload.new.id ? (payload.new as Transaction) : t));
           }
         }
       )
       .subscribe();
 
     supabase
-      .channel(`meals-${userId}`)
+      .channel(mealChannelName)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "meals", filter: `profile_id=eq.${userId}` },
@@ -210,8 +234,32 @@ export default function App() {
       try {
         const { error } = await supabase.from("transactions").insert([newTxn]);
         if (error) throw error;
-      } catch (err) {
-        console.error("Error inserting transaction to Supabase:", err);
+      } catch (err: any) {
+        console.error("Error inserting transaction to Supabase:", err.message || "Unknown error");
+      }
+    }
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    setTransactions((prev) => prev.filter(t => t.id !== id));
+    if (supabase) {
+      try {
+        const { error } = await supabase.from("transactions").delete().eq("id", id);
+        if (error) throw error;
+      } catch (err: any) {
+        console.error("Error deleting transaction:", err.message || "Unknown error");
+      }
+    }
+  };
+
+  const handleUpdateTransaction = async (id: string, updates: Partial<Transaction>) => {
+    setTransactions((prev) => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+    if (supabase) {
+      try {
+        const { error } = await supabase.from("transactions").update(updates).eq("id", id);
+        if (error) throw error;
+      } catch (err: any) {
+        console.error("Error updating transaction:", err.message || "Unknown error");
       }
     }
   };
@@ -222,8 +270,8 @@ export default function App() {
       try {
         const { error } = await supabase.from("meals").insert([newMeal]);
         if (error) throw error;
-      } catch (err) {
-        console.error("Error inserting meal to Supabase:", err);
+      } catch (err: any) {
+        console.error("Error inserting meal to Supabase:", err.message || "Unknown error");
       }
     }
   };
@@ -239,6 +287,15 @@ export default function App() {
   };
 
   // Rendering Routing Views
+  if (isLoadingAuth) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-bg-app grid-bg">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent"></div>
+        <p className="text-text-muted mt-4 font-mono text-sm animate-pulse">Restoring secure session...</p>
+      </div>
+    );
+  }
+
   if (route === "landing") {
     return (
       <LandingPage 
@@ -419,6 +476,8 @@ export default function App() {
                 profile={profile!} 
                 transactions={transactions} 
                 onAddTransaction={handleAddTransaction}
+                onDeleteTransaction={handleDeleteTransaction}
+                onUpdateTransaction={handleUpdateTransaction}
               />
             )}
 

@@ -21,6 +21,7 @@ interface DashboardConnectProps {
 
 export default function DashboardConnect({ profile }: DashboardConnectProps) {
  const [copied, setCopied] = useState(false);
+ const [isLinking, setIsLinking] = useState(false);
 
  const handleCopy = () => {
  navigator.clipboard.writeText(`/link ${profile.link_code || "FT-9402"}`);
@@ -67,21 +68,23 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  </p>
  </div>
 
- {profile.telegram_chat_id ? (
- <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-4 rounded-xl text-sm space-y-1.5 flex-shrink-0 relative z-10 shadow-sm">
- <p className="font-semibold flex items-center gap-2">
- <ShieldCheck size={18} className="text-emerald-500"/> Connection Active
- </p>
- <p className="text-emerald-600/80 font-mono text-xs">Chat ID: {profile.telegram_chat_id}</p>
- </div>
- ) : (
- <div className="bg-amber-50 border border-amber-200 text-amber-700 px-5 py-4 rounded-xl text-sm space-y-1.5 flex-shrink-0 relative z-10 shadow-sm">
- <p className="font-semibold flex items-center gap-2">
- <RefreshCw size={16} className="animate-spin text-amber-500" /> Awaiting Bot Link
- </p>
- <p className="text-amber-600/80 text-xs">No active link found</p>
- </div>
- )}
+ {profile.telegram_bot_token ? (
+  <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-4 rounded-xl text-sm space-y-1.5 flex-shrink-0 relative z-10 shadow-sm">
+  <p className="font-semibold flex items-center gap-2">
+  <ShieldCheck size={18} className="text-emerald-500"/> Connection Active
+  </p>
+  <p className="text-emerald-600/80 font-mono text-xs">
+    {profile.telegram_chat_id ? `Chat ID: ${profile.telegram_chat_id}` : 'Awaiting your first message...'}
+  </p>
+  </div>
+  ) : (
+  <div className="bg-amber-50 border border-amber-200 text-amber-700 px-5 py-4 rounded-xl text-sm space-y-1.5 flex-shrink-0 relative z-10 shadow-sm">
+  <p className="font-semibold flex items-center gap-2">
+  <RefreshCw size={16} className="animate-spin text-amber-500" /> Awaiting Bot Link
+  </p>
+  <p className="text-amber-600/80 text-xs">No active link found</p>
+  </div>
+  )}
  </motion.div>
 
  <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -119,39 +122,47 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
   </div>
 
   <button
-   onClick={async () => {
-     try {
-       const token = (document.getElementById('bot-token-input') as HTMLInputElement).value;
-       if (!token) return alert('Please enter a bot token');
-       
-       const res = await fetch('/api/save-bot-token', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ userId: profile.id, botToken: token })
-       });
-       
-       const textResponse = await res.text();
-       let data;
-       try {
-         data = JSON.parse(textResponse);
-       } catch (e) {
-         throw new Error("Server returned an invalid response (not JSON). It may be down or unreachable.");
-       }
+    disabled={isLinking}
+    onClick={async () => {
+      try {
+        const token = (document.getElementById('bot-token-input') as HTMLInputElement).value;
+        if (!token) return alert('Please enter a bot token');
+        
+        setIsLinking(true);
+        const res = await fetch('/api/save-bot-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: profile.id, botToken: token })
+        });
+        
+        const textResponse = await res.text();
+        let data;
+        try {
+          data = JSON.parse(textResponse);
+        } catch (e) {
+          throw new Error("Server returned an invalid response (not JSON). It may be down or unreachable.");
+        }
 
-       if (data.success) {
-         alert('Bot linked successfully! You can now message your bot.');
-         window.location.reload();
-       } else {
-         alert(data.error || 'Failed to link bot');
-       }
-     } catch (err: any) {
-       console.error(err);
-       alert("An error occurred: " + err.message);
-     }
-   }}
-   className="w-full bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-medium cursor-pointer shadow-sm hover:shadow active:scale-95"
+        if (data.success) {
+          alert('Bot linked successfully! You can now message your bot.');
+          window.location.reload();
+        } else {
+          alert(data.error || 'Failed to link bot');
+        }
+      } catch (err: any) {
+        console.error(err);
+        alert("An error occurred: " + err.message);
+      } finally {
+        setIsLinking(false);
+      }
+    }}
+    className={`w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition shadow-sm ${
+      isLinking 
+        ? "bg-slate-400 text-slate-100 cursor-not-allowed" 
+        : "bg-slate-900 text-white hover:bg-slate-800"
+    }`}
   >
-   <Link size={16} /> Link My Bot
+   <Link size={16} /> {isLinking ? "Connecting to Telegram..." : "Link My Bot"}
   </button>
  </div>
  </div>

@@ -68,7 +68,11 @@ async function parseMessageCore(message: string) {
 
   const systemPrompt = `
     You are an expert financial and nutritional parser for a personal tracker app called FinTrack.
-    Your task is to analyze a single text message in plain English or Hinglish (e.g. "spent 500 on ola", "swiggy 420 dinner", "1.5k myntra shirt", "got salary 75000", "lunch 2 eggs and toast") and extract structured financial or nutritional data.
+    Your task is to analyze a single text message in plain English or Hinglish (e.g. "spent 500 on ola", "swiggy 420 dinner", "edit the swiggy lunch to 500", "delete the last ola trip") and extract structured financial or nutritional data, as well as the user's intent.
+
+    Intent Detection:
+    - Determine if the user wants to 'add' a new log, 'edit' an existing log, or 'delete' a log.
+    - If editing or deleting, extract a concise 'target_description' of the item they want to modify (e.g., "swiggy lunch", "ola trip", "500rs amazon").
 
     Supported Categories: travel, food, groceries, clothes, rent, bills, luxuries, investments, health, education, other. If the item doesn't fit these well, dynamically create a concise, relevant new category (e.g. 'gifts', 'pet', 'subscriptions').
     Supported Type: 'expense' | 'income' | 'meal' | 'both'.
@@ -96,6 +100,15 @@ async function parseMessageCore(message: string) {
   const responseSchema = {
     type: Type.OBJECT,
     properties: {
+      action: {
+        type: Type.STRING,
+        description: "The intended action: 'add', 'edit', or 'delete'. Defaults to 'add'.",
+      },
+      target_description: {
+        type: Type.STRING,
+        description: "If action is 'edit' or 'delete', describe the exact transaction the user wants to modify (e.g. 'swiggy lunch' or '500 ola'). Null if 'add'.",
+        nullable: true,
+      },
       type: {
         type: Type.STRING,
         description: "Detect the intent of the logging: 'expense', 'income', 'meal', or 'both' (if both expense and meal are found).",
@@ -142,10 +155,10 @@ async function parseMessageCore(message: string) {
       },
       explanation: {
         type: Type.STRING,
-        description: "A short, cheerful, Hinglish or English confirmation summary to send back to the user (e.g. 'Logged ₹420 Swiggy dinner! Estimated ~680 kcal with 24g protein. Stay healthy!').",
+        description: "A short, cheerful, Hinglish or English confirmation summary to send back to the user (e.g. 'Logged ₹420 Swiggy dinner!', 'Edited swiggy lunch to ₹500', or 'Deleted ola transaction').",
       },
     },
-    required: ["type", "explanation"],
+    required: ["action", "type", "explanation"],
   };
 
   try {
@@ -170,12 +183,55 @@ async function parseMessageCore(message: string) {
 
 // 1. Parse expense/meal message using Gemini AI
 app.post("/api/parse", async (req: Request, res: Response): Promise<void> => {
-  const { message } = req.body;
+  const { message, userId } = req.body;
   if (!message || typeof message !== "string") {
     res.status(400).json({ error: "Message is required and must be a string." });
     return;
   }
   const parsed = await parseMessageCore(message);
+  const result = parsed.result;
+
+  if (!userId) {
+    res.json(parsed);
+    return;
+  }
+
+  // Handle Edit/Delete via API for the Web UI console
+  if (result.action === "delete" && result.target_description) {
+    const targetEmbedding = await generateEmbedding(result.target_description);
+    const vectorStr = `[${targetEmbedding.join(',')}]`;
+    const matchingTxns: any[] = await prisma.$queryRaw`
+      SELECT id FROM "transactions" WHERE profile_id = ${userId}::uuid ORDER BY embedding <=> ${vectorStr}::vector LIMIT 1;
+    `;
+    if (matchingTxns.length > 0) {
+      await prisma.transaction.delete({ where: { id: matchingTxns[0].id } });
+      parsed.result.deleted_id = matchingTxns[0].id;
+    }
+  } else if (result.action === "edit" && result.target_description && result.transaction) {
+    const targetEmbedding = await generateEmbedding(result.target_description);
+    const vectorStr = `[${targetEmbedding.join(',')}]`;
+    const matchingTxns: any[] = await prisma.$queryRaw`
+      SELECT id FROM "transactions" WHERE profile_id = ${userId}::uuid ORDER BY embedding <=> ${vectorStr}::vector LIMIT 1;
+    `;
+    if (matchingTxns.length > 0) {
+      const match = matchingTxns[0];
+      const newText = `${result.transaction.type}: ${result.transaction.amount} on ${result.transaction.category} - ${result.transaction.note}`;
+      const newEmbedding = await generateEmbedding(newText);
+      const newVectorStr = `[${newEmbedding.join(',')}]`;
+      const updated = await prisma.transaction.update({
+        where: { id: match.id },
+        data: {
+          amount: result.transaction.amount,
+          category: result.transaction.category,
+          note: result.transaction.note,
+          type: result.transaction.type,
+        }
+      });
+      await prisma.$executeRaw`UPDATE "transactions" SET embedding = ${newVectorStr}::vector WHERE id = ${match.id}`;
+      parsed.result.updated_transaction = updated;
+    }
+  }
+
   res.json(parsed);
 });
 
@@ -270,7 +326,54 @@ app.post("/api/telegram-webhook/:userId", async (req: Request, res: Response): P
       return;
     }
 
-    // Save to Database with Embeddings
+    if (result.action === "delete" && result.target_description) {
+      const targetEmbedding = await generateEmbedding(result.target_description);
+      const vectorStr = `[${targetEmbedding.join(',')}]`;
+      
+      const matchingTxns: any[] = await prisma.$queryRaw`
+        SELECT id, note, amount, category FROM "transactions" WHERE profile_id = ${userId}::uuid ORDER BY embedding <=> ${vectorStr}::vector LIMIT 1;
+      `;
+      if (matchingTxns.length > 0) {
+        const match = matchingTxns[0];
+        await prisma.transaction.delete({ where: { id: match.id } });
+        await sendMessage(result.explanation || `Deleted transaction: ${match.note || match.category} (₹${match.amount}).`);
+      } else {
+        await sendMessage("Could not find a transaction matching that description to delete.");
+      }
+      return;
+    }
+
+    if (result.action === "edit" && result.target_description && result.transaction) {
+      const targetEmbedding = await generateEmbedding(result.target_description);
+      const vectorStr = `[${targetEmbedding.join(',')}]`;
+      
+      const matchingTxns: any[] = await prisma.$queryRaw`
+        SELECT id, note, amount, category FROM "transactions" WHERE profile_id = ${userId}::uuid ORDER BY embedding <=> ${vectorStr}::vector LIMIT 1;
+      `;
+      if (matchingTxns.length > 0) {
+        const match = matchingTxns[0];
+        const newText = `${result.transaction.type}: ${result.transaction.amount} on ${result.transaction.category} - ${result.transaction.note}`;
+        const newEmbedding = await generateEmbedding(newText);
+        const newVectorStr = `[${newEmbedding.join(',')}]`;
+
+        await prisma.transaction.update({
+          where: { id: match.id },
+          data: {
+            amount: result.transaction.amount,
+            category: result.transaction.category,
+            note: result.transaction.note,
+            type: result.transaction.type,
+          }
+        });
+        await prisma.$executeRaw`UPDATE "transactions" SET embedding = ${newVectorStr}::vector WHERE id = ${match.id}`;
+        await sendMessage(result.explanation || `Updated transaction to ₹${result.transaction.amount} for ${result.transaction.note}.`);
+      } else {
+        await sendMessage("Could not find a transaction matching that description to edit.");
+      }
+      return;
+    }
+
+    // Save to Database with Embeddings for 'add' actions
     const crypto = require('crypto');
     if (result.type === "expense" || result.type === "income" || result.type === "both") {
       if (result.transaction) {

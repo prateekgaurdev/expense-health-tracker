@@ -19,12 +19,16 @@ interface DashboardMoneyProps {
  profile: Profile;
  transactions: Transaction[];
  onAddTransaction: (t: Transaction) => void;
+ onDeleteTransaction: (id: string) => void;
+ onUpdateTransaction: (id: string, updates: Partial<Transaction>) => void;
 }
 
 export default function DashboardMoney({
  profile,
  transactions,
  onAddTransaction,
+ onDeleteTransaction,
+ onUpdateTransaction,
 }: DashboardMoneyProps) {
  const [showAddForm, setShowAddForm] = useState(false);
  const [timeFilter, setTimeFilter] = useState("current");
@@ -190,12 +194,13 @@ export default function DashboardMoney({
  <th className="py-3 px-6 text-xs font-semibold text-text-muted uppercase tracking-wider border-b border-border-main glass-panel">Category</th>
  <th className="py-3 px-6 text-xs font-semibold text-text-muted uppercase tracking-wider border-b border-border-main glass-panel">Description</th>
  <th className="py-3 px-6 text-xs font-semibold text-text-muted uppercase tracking-wider border-b border-border-main glass-panel text-right">Amount</th>
+ <th className="py-3 px-6 text-xs font-semibold text-text-muted uppercase tracking-wider border-b border-border-main glass-panel text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-slate-100">
  {transactions.length === 0 ? (
    <tr>
-     <td colSpan={4} className="py-8 px-6 text-center text-text-muted">
+     <td colSpan={5} className="py-8 px-6 text-center text-text-muted">
        No transactions yet.
      </td>
    </tr>
@@ -225,6 +230,29 @@ export default function DashboardMoney({
        <span className="text-text-main font-medium">-{formatINR(txn.amount)}</span>
        )}
        </td>
+       <td className="py-4 px-6 text-sm text-right whitespace-nowrap">
+          <button 
+            onClick={() => {
+              const newAmount = prompt(`Edit amount for ${txn.category}?`, String(txn.amount));
+              if (newAmount && !isNaN(Number(newAmount))) {
+                onUpdateTransaction(txn.id, { amount: Number(newAmount) });
+              }
+            }}
+            className="text-text-muted hover:text-accent mr-3 transition font-medium"
+          >
+            Edit
+          </button>
+          <button 
+            onClick={() => {
+              if (confirm(`Delete ${txn.category} transaction?`)) {
+                onDeleteTransaction(txn.id);
+              }
+            }}
+            className="text-text-muted hover:text-red-500 transition font-medium"
+          >
+            Delete
+          </button>
+        </td>
        </tr>
      );
    })
