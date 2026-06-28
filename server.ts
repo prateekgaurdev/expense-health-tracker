@@ -9,6 +9,7 @@ import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import { PrismaClient } from "@prisma/client";
+import cron from "node-cron";
 
 dotenv.config();
 
