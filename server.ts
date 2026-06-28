@@ -261,49 +261,49 @@ app.post("/api/telegram-webhook/:userId", async (req: Request, res: Response): P
     const crypto = require('crypto');
     if (result.type === "expense" || result.type === "income" || result.type === "both") {
       if (result.transaction) {
-        const textToEmbed = \`\${result.transaction.type} of \${result.transaction.amount} in \${result.transaction.category}. Note: \${result.transaction.note}\`;
+        const textToEmbed = `${result.transaction.type} of ${result.transaction.amount} in ${result.transaction.category}. Note: ${result.transaction.note}`;
         const embedding = await generateEmbedding(textToEmbed);
-        const vectorStr = \`[\${embedding.join(',')}]\`;
+        const vectorStr = `[${embedding.join(',')}]`;
         
-        await prisma.$executeRaw\`
+        await prisma.$executeRaw`
           INSERT INTO "transactions" (id, profile_id, amount, category, note, type, date, created_at, embedding)
           VALUES (
-            \${crypto.randomUUID()}, 
-            \${userId}::uuid, 
-            \${result.transaction.amount}, 
-            \${result.transaction.category}, 
-            \${result.transaction.note}, 
-            \${result.transaction.type}, 
+            ${crypto.randomUUID()}, 
+            ${userId}::uuid, 
+            ${result.transaction.amount}, 
+            ${result.transaction.category}, 
+            ${result.transaction.note}, 
+            ${result.transaction.type}, 
             now(), now(), 
-            \${vectorStr}::vector
+            ${vectorStr}::vector
           )
-        \`;
+        `;
       }
     }
 
     if (result.type === "meal" || result.type === "both") {
       if (result.meal) {
-        const textToEmbed = \`Ate \${result.meal.name} for \${result.meal.meal_type}. \${result.meal.calories} kcal, \${result.meal.protein}g protein, health score \${result.meal.health_score}.\`;
+        const textToEmbed = `Ate ${result.meal.name} for ${result.meal.meal_type}. ${result.meal.calories} kcal, ${result.meal.protein}g protein, health score ${result.meal.health_score}.`;
         const embedding = await generateEmbedding(textToEmbed);
-        const vectorStr = \`[\${embedding.join(',')}]\`;
+        const vectorStr = `[${embedding.join(',')}]`;
 
-        await prisma.$executeRaw\`
+        await prisma.$executeRaw`
           INSERT INTO "meals" (id, profile_id, name, calories, protein, carbs, fat, fiber, health_score, meal_type, date, created_at, embedding)
           VALUES (
-            \${crypto.randomUUID()}, 
-            \${userId}::uuid, 
-            \${result.meal.name}, 
-            \${result.meal.calories}, 
-            \${result.meal.protein}, 
-            \${result.meal.carbs}, 
-            \${result.meal.fat}, 
-            \${result.meal.fiber}, 
-            \${result.meal.health_score}, 
-            \${result.meal.meal_type}, 
+            ${crypto.randomUUID()}, 
+            ${userId}::uuid, 
+            ${result.meal.name}, 
+            ${result.meal.calories}, 
+            ${result.meal.protein}, 
+            ${result.meal.carbs}, 
+            ${result.meal.fat}, 
+            ${result.meal.fiber}, 
+            ${result.meal.health_score}, 
+            ${result.meal.meal_type}, 
             now(), now(), 
-            \${vectorStr}::vector
+            ${vectorStr}::vector
           )
-        \`;
+        `;
       }
     }
 
@@ -509,34 +509,34 @@ app.post("/api/ai-assist", async (req: Request, res: Response): Promise<void> =>
 
     // 1. Embed the user's question
     const questionEmbedding = await generateEmbedding(question);
-    const vectorStr = \`[\${questionEmbedding.join(',')}]\`;
+    const vectorStr = `[${questionEmbedding.join(',')}]`;
 
     // 2. Perform Vector Similarity Search
     // Fetch top 15 most relevant transactions
-    const relevantTransactions: any[] = await prisma.$queryRaw\`
+    const relevantTransactions: any[] = await prisma.$queryRaw`
       SELECT amount, category, note, type, date 
       FROM "transactions" 
-      WHERE profile_id = \${userId}::uuid 
-      ORDER BY embedding <=> \${vectorStr}::vector 
+      WHERE profile_id = ${userId}::uuid 
+      ORDER BY embedding <=> ${vectorStr}::vector 
       LIMIT 15
-    \`;
+    `;
 
     // Fetch top 15 most relevant meals
-    const relevantMeals: any[] = await prisma.$queryRaw\`
+    const relevantMeals: any[] = await prisma.$queryRaw`
       SELECT name, calories, protein, health_score, meal_type, date 
       FROM "meals" 
-      WHERE profile_id = \${userId}::uuid 
-      ORDER BY embedding <=> \${vectorStr}::vector 
+      WHERE profile_id = ${userId}::uuid 
+      ORDER BY embedding <=> ${vectorStr}::vector 
       LIMIT 15
-    \`;
+    `;
 
     // Prepare context
     const transactionsContext = relevantTransactions
-      .map(t => \`- \${t.date}: ₹\${t.amount} for \${t.note} [\${t.category}] (\${t.type})\`)
+      .map(t => `- ${t.date}: ₹${t.amount} for ${t.note} [${t.category}] (${t.type})`)
       .join("\\n");
 
     const mealsContext = relevantMeals
-      .map(m => \`- \${m.date}: \${m.name} (\${m.meal_type}) - \${m.calories} kcal, \${m.protein}g protein, health: \${m.health_score}/10\`)
+      .map(m => `- ${m.date}: ${m.name} (${m.meal_type}) - ${m.calories} kcal, ${m.protein}g protein, health: ${m.health_score}/10`)
       .join("\\n");
 
     const userProfile = profile || {
@@ -546,29 +546,29 @@ app.post("/api/ai-assist", async (req: Request, res: Response): Promise<void> =>
       protein_goal: 100,
     };
 
-    const systemPrompt = \`
+    const systemPrompt = `
       You are FinTrack AI, the God-level finance and nutrition expert built into the FinTrack app.
       Your primary purpose is to help the user understand their financial spending and nutritional habits, answer questions based on their real data, and provide concrete, actionable advice.
 
-      Current User: \${userProfile.name}
-      Monthly Expense Budget: ₹\${userProfile.monthly_budget}
-      Daily Calorie Goal: \${userProfile.calorie_goal} kcal
-      Daily Protein Goal: \${userProfile.protein_goal}g
+      Current User: ${userProfile.name}
+      Monthly Expense Budget: ₹${userProfile.monthly_budget}
+      Daily Calorie Goal: ${userProfile.calorie_goal} kcal
+      Daily Protein Goal: ${userProfile.protein_goal}g
 
       **RETRIEVED CONTEXT (Top semantic matches for their question):**
       
       Relevant Transactions:
-      \${transactionsContext || "No highly relevant transactions found."}
+      ${transactionsContext || "No highly relevant transactions found."}
 
       Relevant Meals:
-      \${mealsContext || "No highly relevant meals found."}
+      ${mealsContext || "No highly relevant meals found."}
 
       Core Directives:
       1. Use the RETRIEVED CONTEXT above to answer the user's question accurately.
       2. Give highly specific answers with concrete numbers based on the context provided.
       3. Always be supportive, professional, and slightly conversational (friendly tone).
       4. Do not hallucinate transactions or meals that aren't in the context.
-    \`;
+    `;
 
     const chatSession = ai.chats.create({
       model: "gemini-3.5-flash",
