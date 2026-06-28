@@ -2,53 +2,53 @@
 @import "tailwindcss";
 
 :root {
-  /* LIGHT MODE (Glassmorphism & Airy) */
-  --bg-app: #f4f5f7;
+  /* LIGHT MODE (Creamy & Warm Glassmorphism) */
+  --bg-app: #fdfbf7;
   --bg-panel: #ffffff;
   --bg-card: rgba(255, 255, 255, 0.7);
   --bg-header: rgba(255, 255, 255, 0.8);
-  --text-main: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748B;
-  --border-color: #e2e8f0;
-  --border-subtle: #f1f5f9;
+  --text-main: #2b2723;
+  --text-secondary: #5c564f;
+  --text-muted: #8c867f;
+  --border-color: #f0eee4;
+  --border-subtle: #f7f6f2;
   --bg-input: #ffffff;
-  --bg-btn-inactive: #f1f5f9;
-  --text-btn-inactive: #64748B;
+  --bg-btn-inactive: #f7f6f2;
+  --text-btn-inactive: #5c564f;
   
-  --grid-color: rgba(15, 23, 42, 0.03);
+  --grid-color: rgba(43, 39, 35, 0.03);
   
-  --shadow-sm: 0 2px 8px -2px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 10px 24px -4px rgba(15, 23, 42, 0.08);
-  --shadow-xl: 0 25px 40px -8px rgba(15, 23, 42, 0.1);
+  --shadow-sm: 0 2px 8px -2px rgba(43, 39, 35, 0.05);
+  --shadow-md: 0 10px 24px -4px rgba(43, 39, 35, 0.08);
+  --shadow-xl: 0 25px 40px -8px rgba(43, 39, 35, 0.1);
   --blur-panel: blur(12px);
   
-  --accent-primary: #0ea5e9; /* Light mode cyan/blue */
+  --accent-primary: #10b981; /* Emerald green */
 }
 
 .dark {
-  /* DARK MODE (Deep Space & Neon) */
-  --bg-app: #020617; /* Deepest slate */
-  --bg-panel: #0f172a; 
-  --bg-card: rgba(15, 23, 42, 0.7);
-  --bg-header: rgba(15, 23, 42, 0.8);
-  --text-main: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
-  --border-color: #1e293b;
-  --border-subtle: #0f172a;
-  --bg-input: #020617;
-  --bg-btn-inactive: #1e293b;
-  --text-btn-inactive: #94a3b8;
+  /* DARK MODE (Premium Obsidian / Charcoal) */
+  --bg-app: #0a0a0a;
+  --bg-panel: #141414; 
+  --bg-card: rgba(20, 20, 20, 0.75);
+  --bg-header: rgba(20, 20, 20, 0.85);
+  --text-main: #f5f5f5;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  --border-color: #262626;
+  --border-subtle: #1a1a1a;
+  --bg-input: #0a0a0a;
+  --bg-btn-inactive: #262626;
+  --text-btn-inactive: #a3a3a3;
   
-  --grid-color: rgba(14, 165, 233, 0.06);
+  --grid-color: rgba(16, 185, 129, 0.05);
   
-  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.6);
-  --shadow-xl: 0 30px 60px rgba(0, 0, 0, 0.7);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.8);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.9);
+  --shadow-xl: 0 30px 60px rgba(0, 0, 0, 0.95);
   --blur-panel: blur(16px);
   
-  --accent-primary: #22d3ee; /* Neon cyan */
+  --accent-primary: #10b981; /* Neon emerald */
 }
 
 @theme {
