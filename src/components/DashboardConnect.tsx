@@ -107,28 +107,40 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  Copy this command and send it directly to your Telegram bot. This pairs your Telegram chat account to this secure web dashboard session.
  </p>
 
- <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
- <div className="space-y-1 text-center sm:text-left w-full sm:w-auto">
- <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Copy command</span>
- <p className="text-lg font-mono font-bold text-slate-900 select-all tracking-wide bg-white px-3 py-1.5 rounded-md border border-slate-200 mt-1 shadow-sm">
- /link {profile.link_code || "FT-9402"}
- </p>
- </div>
+ <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col gap-4">
+  <div className="space-y-1">
+   <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">BotFather Access Token</span>
+   <input
+    type="text"
+    placeholder="e.g. 123456789:ABCdefGHIjklmNoPQRstUVwxyZ"
+    id="bot-token-input"
+    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none font-mono shadow-sm mt-1"
+   />
+  </div>
 
- <button
- onClick={handleCopy}
- className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-medium cursor-pointer shadow-sm hover:shadow active:scale-95"
- >
- {copied ? (
- <>
- <Check size={16} /> Copied!
- </>
- ) : (
- <>
- <Copy size={16} /> Copy Text
- </>
- )}
- </button>
+  <button
+   onClick={async () => {
+     const token = (document.getElementById('bot-token-input') as HTMLInputElement).value;
+     if (!token) return alert('Please enter a bot token');
+     
+     const res = await fetch('/api/save-bot-token', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ userId: profile.id, botToken: token })
+     });
+     
+     const data = await res.json();
+     if (data.success) {
+       alert('Bot linked successfully! You can now message your bot.');
+       window.location.reload();
+     } else {
+       alert(data.error || 'Failed to link bot');
+     }
+   }}
+   className="w-full bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-medium cursor-pointer shadow-sm hover:shadow active:scale-95"
+  >
+   <Link size={16} /> Link My Bot
+  </button>
  </div>
  </div>
 
@@ -137,15 +149,15 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  <ul className="space-y-4 text-sm text-slate-600">
  <li className="flex items-start gap-4">
  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center font-medium text-xs mt-0.5 shadow-sm">1</span>
- <span className="pt-1">The bot responds with <b className="text-slate-900 font-medium">"✅ Pair successful! Hello Gummy Bear."</b></span>
+ <span className="pt-1">Go to Telegram and message your newly created bot with <b className="text-slate-900 font-medium">/link</b>.</span>
  </li>
  <li className="flex items-start gap-4">
  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center font-medium text-xs mt-0.5 shadow-sm">2</span>
- <span className="pt-1">You can begin messaging transactions like <b className="text-slate-900 font-medium">"swiggy 420 lunch"</b> or <b className="text-slate-900 font-medium">"ola 180 auto"</b>.</span>
+ <span className="pt-1">The bot will respond confirming the connection.</span>
  </li>
  <li className="flex items-start gap-4">
  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center font-medium text-xs mt-0.5 shadow-sm">3</span>
- <span className="pt-1">The system pushes real-time web socket updates to this dashboard instantly.</span>
+ <span className="pt-1">You can begin messaging transactions like <b className="text-slate-900 font-medium">"swiggy 420 lunch"</b> or <b className="text-slate-900 font-medium">"ola 180 auto"</b>.</span>
  </li>
  </ul>
  </div>
@@ -168,7 +180,7 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  </div>
 
  <p className="text-sm text-slate-600 leading-relaxed">
- Running your own bot is easy. Follow this list using our ready-made deployment script inside the project's <code className="text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono">/backend</code> folder:
+ Just follow these simple steps to bring your own personal FinTrack bot to life:
  </p>
 
  <div className="space-y-6 pt-2">
@@ -179,7 +191,7 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  <div className="space-y-1">
  <h4 className="text-sm font-semibold text-slate-900">Create Bot</h4>
  <p className="text-sm text-slate-500 leading-relaxed">
- Go to <b className="text-slate-700 font-medium">@BotFather</b> on Telegram, send <code className="bg-slate-100 text-slate-700 border border-slate-200 px-1 py-0.5 rounded text-xs font-mono">/newbot</code>, name it, and copy your API Token.
+ Go to <b className="text-slate-700 font-medium">@BotFather</b> on Telegram and send <code className="bg-slate-100 text-slate-700 border border-slate-200 px-1 py-0.5 rounded text-xs font-mono">/newbot</code>.
  </p>
  </div>
  </div>
@@ -189,9 +201,9 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  2
  </div>
  <div className="space-y-1">
- <h4 className="text-sm font-semibold text-slate-900">Fill Configuration</h4>
+ <h4 className="text-sm font-semibold text-slate-900">Copy Token</h4>
  <p className="text-sm text-slate-500 leading-relaxed">
- Open <code className="bg-slate-100 text-slate-700 border border-slate-200 px-1 py-0.5 rounded text-xs font-mono">backend/config.json</code> and paste your Telegram bot token, Supabase public anon keys, and Gemini secrets.
+ After naming your bot, BotFather will give you a long API Token (e.g. `1234:ABC...`). Copy it.
  </p>
  </div>
  </div>
@@ -201,9 +213,9 @@ export default function DashboardConnect({ profile }: DashboardConnectProps) {
  3
  </div>
  <div className="space-y-1">
- <h4 className="text-sm font-semibold text-slate-900">Boot Bot Process</h4>
+ <h4 className="text-sm font-semibold text-slate-900">Link Here</h4>
  <p className="text-sm text-slate-500 leading-relaxed">
- Run <code className="bg-slate-100 text-slate-700 border border-slate-200 px-1 py-0.5 rounded text-xs font-mono">python bot.py</code> on your server (VPS, Railway, or local PC) to start receiving logs!
+ Paste that token into the input field on the left and click "Link My Bot". We will automatically register it for you!
  </p>
  </div>
  </div>

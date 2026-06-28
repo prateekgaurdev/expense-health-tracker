@@ -8,9 +8,11 @@ import path from "path";
 import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
+import { PrismaClient } from "@prisma/client";
 
 dotenv.config();
 
+const prisma = new PrismaClient();
 const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -43,93 +45,84 @@ if (apiKey && apiKey !== "MY_GEMINI_API_KEY") {
 // API Endpoints
 // -------------------------------------------------------------
 
-// 1. Parse expense/meal message using Gemini AI
-app.post("/api/parse", async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { message } = req.body;
-    if (!message || typeof message !== "string") {
-      res.status(400).json({ error: "Message is required and must be a string." });
-      return;
-    }
 
-    if (!ai) {
-      // Offline fallback rule logic for demo or if key is missing
-      console.log("Gemini not initialized, using local regex/keyword parser fallback.");
-      const fallbackResult = parseMessageFallback(message);
-      res.json({ result: fallbackResult, fallback: true });
-      return;
-    }
+async function parseMessageCore(message: string) {
+  if (!ai) {
+    console.log("Gemini not initialized, using local regex/keyword parser fallback.");
+    return { result: parseMessageFallback(message), fallback: true };
+  }
 
-    const systemPrompt = `
-      You are an expert financial and nutritional parser for a personal tracker app called FinTrack.
-      Your task is to analyze a single text message in plain English or Hinglish (e.g. "spent 500 on ola", "swiggy 420 dinner", "1.5k myntra shirt", "got salary 75000", "lunch 2 eggs and toast") and extract structured financial or nutritional data.
+  const systemPrompt = `
+    You are an expert financial and nutritional parser for a personal tracker app called FinTrack.
+    Your task is to analyze a single text message in plain English or Hinglish (e.g. "spent 500 on ola", "swiggy 420 dinner", "1.5k myntra shirt", "got salary 75000", "lunch 2 eggs and toast") and extract structured financial or nutritional data.
 
-      Supported Categories: travel, food, groceries, clothes, rent, bills, luxuries, investments, health, education, other. If the item doesn't fit these well, dynamically create a concise, relevant new category (e.g. 'gifts', 'pet', 'subscriptions').
-      Supported Type: 'expense' | 'income' | 'meal' | 'both'.
+    Supported Categories: travel, food, groceries, clothes, rent, bills, luxuries, investments, health, education, other. If the item doesn't fit these well, dynamically create a concise, relevant new category (e.g. 'gifts', 'pet', 'subscriptions').
+    Supported Type: 'expense' | 'income' | 'meal' | 'both'.
 
-      Amounts:
-      - Recognize k / K as thousands (e.g. 1.5k = 1500).
-      - Recognize l / L / lakh as lakhs (e.g. 2l = 200000).
-      - Recognize rs, rupees, ₹, RS.
+    Amounts:
+    - Recognize k / K as thousands (e.g. 1.5k = 1500).
+    - Recognize l / L / lakh as lakhs (e.g. 2l = 200000).
+    - Recognize rs, rupees, ₹, RS.
 
-      Nutrition Detection:
-      - If the message refers to eating, ordering food, Swiggy, Zomato, groceries that are directly meals, or specific dishes (e.g. "lunch 2 eggs", "swiggy 420 dinner"), detect it as a 'meal' or 'both' (if an expense amount is present).
-      - Estimate realistic calories, protein (g), carbs (g), fat (g), fiber (g), and health_score (1 to 10, where 10 is super healthy like salad/eggs, and 1 is highly processed/junk).
-      - Set meal_type based on keywords or default to snack/lunch/dinner appropriately.
+    Nutrition Detection:
+    - If the message refers to eating, ordering food, Swiggy, Zomato, groceries that are directly meals, or specific dishes (e.g. "lunch 2 eggs", "swiggy 420 dinner"), detect it as a 'meal' or 'both' (if an expense amount is present).
+    - Estimate realistic calories, protein (g), carbs (g), fat (g), fiber (g), and health_score (1 to 10, where 10 is super healthy like salad/eggs, and 1 is highly processed/junk).
+    - Set meal_type based on keywords or default to snack/lunch/dinner appropriately.
 
-      Income Detection:
-      - If the message indicates receiving money (e.g. "got salary 75000", "cashback 50 received", "credited 1000", "salary", "dividend"), set transaction type to "income" and categorise as "other" or "investments" if appropriate.
+    Income Detection:
+    - If the message indicates receiving money (e.g. "got salary 75000", "cashback 50 received", "credited 1000", "salary", "dividend"), set transaction type to "income" and categorise as "other" or "investments" if appropriate.
 
-      Output JSON strictly according to the schema provided. No markdown wrapping, no extra comments, just the pure JSON.
-    `;
+    Output JSON strictly according to the schema provided. No markdown wrapping, no extra comments, just the pure JSON.
+  `;
 
-    const responseSchema = {
-      type: Type.OBJECT,
-      properties: {
-        type: {
-          type: Type.STRING,
-          description: "Detect the intent of the logging: 'expense', 'income', 'meal', or 'both' (if both expense and meal are found).",
-        },
-        transaction: {
-          type: Type.OBJECT,
-          description: "Extracted transaction details if type is expense, income, or both.",
-          properties: {
-            amount: { type: Type.NUMBER, description: "Numeric amount in Rupees. Do not include currency symbols." },
-            category: { 
-              type: Type.STRING, 
-              description: "The best category. Try to use common ones like travel, food, groceries, clothes, rent, bills, luxuries, investments, health, education. If none fit well, create a suitable concise new category name in lowercase." 
-            },
-            note: { type: Type.STRING, description: "Descriptive clean note (e.g. 'ola cab to office', 'myntra shirt', 'swiggy dinner')." },
-            type: { type: Type.STRING, description: "Either 'expense' or 'income'." },
-          },
-          required: ["amount", "category", "note", "type"],
-        },
-        meal: {
-          type: Type.OBJECT,
-          description: "Extracted nutritional meal details if type is meal or both.",
-          properties: {
-            name: { type: Type.STRING, description: "Dish or meal description (e.g. 'Paneer, 2 roti & dal', 'Double cheese pizza', 'Boiled eggs')." },
-            calories: { type: Type.NUMBER, description: "Estimated total calories (kcal)." },
-            protein: { type: Type.NUMBER, description: "Estimated protein content in grams." },
-            carbs: { type: Type.NUMBER, description: "Estimated carbohydrate content in grams." },
-            fat: { type: Type.NUMBER, description: "Estimated fat content in grams." },
-            fiber: { type: Type.NUMBER, description: "Estimated fiber content in grams." },
-            health_score: { type: Type.NUMBER, description: "Estimated healthiness score from 1 (unhealthy) to 10 (exceptionally healthy)." },
-            meal_type: { 
-              type: Type.STRING, 
-              description: "Must be exactly one of: breakfast, lunch, dinner, snack." 
-            },
-          },
-          required: ["name", "calories", "protein", "carbs", "fat", "fiber", "health_score", "meal_type"],
-        },
-        explanation: {
-          type: Type.STRING,
-          description: "A short, cheerful, Hinglish or English confirmation summary to send back to the user (e.g. 'Logged ₹420 Swiggy dinner! Estimated ~680 kcal with 24g protein. Stay healthy!').",
-        },
+  const responseSchema = {
+    type: Type.OBJECT,
+    properties: {
+      type: {
+        type: Type.STRING,
+        description: "Detect the intent of the logging: 'expense', 'income', 'meal', or 'both' (if both expense and meal are found).",
       },
-      required: ["type", "explanation"],
-    };
+      transaction: {
+        type: Type.OBJECT,
+        description: "Extracted transaction details if type is expense, income, or both.",
+        properties: {
+          amount: { type: Type.NUMBER, description: "Numeric amount in Rupees. Do not include currency symbols." },
+          category: { 
+            type: Type.STRING, 
+            description: "The best category. Try to use common ones like travel, food, groceries, clothes, rent, bills, luxuries, investments, health, education. If none fit well, create a suitable concise new category name in lowercase." 
+          },
+          note: { type: Type.STRING, description: "Descriptive clean note (e.g. 'ola cab to office', 'myntra shirt', 'swiggy dinner')." },
+          type: { type: Type.STRING, description: "Either 'expense' or 'income'." },
+        },
+        required: ["amount", "category", "note", "type"],
+      },
+      meal: {
+        type: Type.OBJECT,
+        description: "Extracted nutritional meal details if type is meal or both.",
+        properties: {
+          name: { type: Type.STRING, description: "Dish or meal description (e.g. 'Paneer, 2 roti & dal', 'Double cheese pizza', 'Boiled eggs')." },
+          calories: { type: Type.NUMBER, description: "Estimated total calories (kcal)." },
+          protein: { type: Type.NUMBER, description: "Estimated protein content in grams." },
+          carbs: { type: Type.NUMBER, description: "Estimated carbohydrate content in grams." },
+          fat: { type: Type.NUMBER, description: "Estimated fat content in grams." },
+          fiber: { type: Type.NUMBER, description: "Estimated fiber content in grams." },
+          health_score: { type: Type.NUMBER, description: "Estimated healthiness score from 1 (unhealthy) to 10 (exceptionally healthy)." },
+          meal_type: { 
+            type: Type.STRING, 
+            description: "Must be exactly one of: breakfast, lunch, dinner, snack." 
+          },
+        },
+        required: ["name", "calories", "protein", "carbs", "fat", "fiber", "health_score", "meal_type"],
+      },
+      explanation: {
+        type: Type.STRING,
+        description: "A short, cheerful, Hinglish or English confirmation summary to send back to the user (e.g. 'Logged ₹420 Swiggy dinner! Estimated ~680 kcal with 24g protein. Stay healthy!').",
+      },
+    },
+    required: ["type", "explanation"],
+  };
 
+  try {
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: `Parse this message: "${message}"`,
@@ -142,15 +135,156 @@ app.post("/api/parse", async (req: Request, res: Response): Promise<void> => {
 
     const parsedText = response.text?.trim() || "{}";
     const result = JSON.parse(parsedText);
-    res.json({ result, fallback: false });
-
+    return { result, fallback: false };
   } catch (error: any) {
     console.error("Error parsing message with Gemini:", error);
-    // Use fallback on error
-    const fallbackResult = parseMessageFallback(req.body.message || "");
-    res.json({ result: fallbackResult, fallback: true, error: error.message });
+    return { result: parseMessageFallback(message), fallback: true, error: error.message };
+  }
+}
+
+// 1. Parse expense/meal message using Gemini AI
+app.post("/api/parse", async (req: Request, res: Response): Promise<void> => {
+  const { message } = req.body;
+  if (!message || typeof message !== "string") {
+    res.status(400).json({ error: "Message is required and must be a string." });
+    return;
+  }
+  const parsed = await parseMessageCore(message);
+  res.json(parsed);
+});
+
+// -------------------------------------------------------------
+// TELEGRAM WEBHOOK ENDPOINTS
+// -------------------------------------------------------------
+app.post("/api/save-bot-token", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId, botToken } = req.body;
+    if (!userId || !botToken) {
+      res.status(400).json({ error: "userId and botToken are required." });
+      return;
+    }
+
+    // Upsert profile and save bot token
+    await prisma.profile.upsert({
+      where: { id: userId },
+      update: { telegram_bot_token: botToken },
+      create: { id: userId, telegram_bot_token: botToken }
+    });
+
+    // Set Webhook to Vercel URL
+    const appUrl = process.env.APP_URL || req.headers.origin || "https://fintrack.vercel.app";
+    const webhookUrl = `${appUrl}/api/telegram-webhook/${userId}`;
+    
+    // Call Telegram API using fetch
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook?url=${webhookUrl}`);
+    const data = await response.json();
+
+    if (!data.ok) {
+      res.status(500).json({ error: "Failed to set Telegram webhook: " + data.description });
+      return;
+    }
+
+    res.json({ success: true, message: "Webhook successfully registered!" });
+  } catch (error: any) {
+    console.error("Error saving bot token:", error);
+    res.status(500).json({ error: error.message });
   }
 });
+
+app.post("/api/telegram-webhook/:userId", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const body = req.body;
+
+    // Send 200 OK early to Telegram so it doesn't retry
+    res.status(200).send("OK");
+
+    if (!body.message || !body.message.text) return;
+    const text = body.message.text;
+    const chatId = body.message.chat.id;
+
+    const profile = await prisma.profile.findUnique({ where: { id: userId } });
+    if (!profile || !profile.telegram_bot_token) {
+      console.log("Profile or bot token not found for user:", userId);
+      return;
+    }
+    const token = profile.telegram_bot_token;
+
+    // Save chat ID if we haven't already
+    if (!profile.telegram_chat_id || profile.telegram_chat_id !== String(chatId)) {
+      await prisma.profile.update({
+        where: { id: userId },
+        data: { telegram_chat_id: String(chatId) }
+      });
+    }
+
+    const sendMessage = async (msg: string) => {
+      try {
+        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chatId, text: msg })
+        });
+      } catch (err) {
+        console.error("Error sending Telegram message:", err);
+      }
+    };
+
+    if (text.startsWith("/start") || text.startsWith("/link")) {
+      await sendMessage("✅ Pair successful! Hello from FinTrack. You can now log expenses and meals directly here.\nTry sending: 'swiggy 420 lunch'");
+      return;
+    }
+
+    // Parse the message using Gemini
+    const parsed = await parseMessageCore(text);
+    const result = parsed.result;
+
+    if (!result) {
+      await sendMessage("Sorry, I couldn't understand that. Please try again.");
+      return;
+    }
+
+    // Save to Database
+    if (result.type === "expense" || result.type === "income" || result.type === "both") {
+      if (result.transaction) {
+        await prisma.transaction.create({
+          data: {
+            profile_id: userId,
+            amount: result.transaction.amount,
+            category: result.transaction.category,
+            note: result.transaction.note,
+            type: result.transaction.type
+          }
+        });
+      }
+    }
+
+    if (result.type === "meal" || result.type === "both") {
+      if (result.meal) {
+        await prisma.meal.create({
+          data: {
+            profile_id: userId,
+            name: result.meal.name,
+            calories: result.meal.calories,
+            protein: result.meal.protein,
+            carbs: result.meal.carbs,
+            fat: result.meal.fat,
+            fiber: result.meal.fiber,
+            health_score: result.meal.health_score,
+            meal_type: result.meal.meal_type
+          }
+        });
+      }
+    }
+
+    // Send the explanation back to the user
+    await sendMessage(result.explanation || "Saved successfully!");
+
+  } catch (error) {
+    console.error("Webhook processing error:", error);
+  }
+});
+
 
 // 1.5. Parse bill or meal photo using Gemini AI
 app.post("/api/parse-photo", async (req: Request, res: Response): Promise<void> => {
