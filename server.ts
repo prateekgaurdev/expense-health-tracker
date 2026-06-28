@@ -6,11 +6,9 @@
 import "dotenv/config";
 import express, { Request, Response } from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import apiRoutes from "./backend/routes/apiRoutes";
 import { requestLogger } from "./backend/middlewares/logger";
 import { errorHandler } from "./backend/middlewares/errorHandler";
-
 
 const app = express();
 const PORT = 3000;
@@ -37,6 +35,7 @@ async function startServer() {
   const server = http.createServer(app);
 
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     vite = await createViteServer({
       server: { 
         middlewareMode: true,
