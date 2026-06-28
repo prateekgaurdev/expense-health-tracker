@@ -25,42 +25,15 @@ app.use("/api", apiRoutes);
 app.use(errorHandler);
 
 // -------------------------------------------------------------
-// Vite and Static File Middleware
+// Static File Middleware (Production)
 // -------------------------------------------------------------
-
-import http from "http";
-
-async function startServer() {
-  let vite: any;
-  const server = http.createServer(app);
-
-  if (process.env.NODE_ENV !== "production") {
-    const { createServer: createViteServer } = await import("vite");
-    vite = await createViteServer({
-      server: { 
-        middlewareMode: true,
-        hmr: { server }
-      },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-    console.log("Vite development server mounted as middleware.");
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req: Request, res: Response) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-    console.log("Production static files serving from: " + distPath);
-  }
-
-  server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+  const distPath = path.join(process.cwd(), "dist");
+  app.use(express.static(distPath));
+  app.get("*", (req: Request, res: Response) => {
+    res.sendFile(path.join(distPath, "index.html"));
   });
-}
-
-if (!process.env.VERCEL) {
-  startServer();
+  console.log("Production static files serving from: " + distPath);
 }
 
 export default app;
