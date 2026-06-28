@@ -45,6 +45,19 @@ if (apiKey && apiKey !== "MY_GEMINI_API_KEY") {
 // API Endpoints
 // -------------------------------------------------------------
 
+async function generateEmbedding(text: string): Promise<number[]> {
+  if (!ai) return Array(768).fill(0);
+  try {
+    const response = await ai.models.embedContent({
+      model: "text-embedding-004",
+      contents: text
+    });
+    return response.embeddings?.[0]?.values || Array(768).fill(0);
+  } catch (error) {
+    console.error("Error generating embedding:", error);
+    return Array(768).fill(0);
+  }
+}
 
 async function parseMessageCore(message: string) {
   if (!ai) {
@@ -244,36 +257,53 @@ app.post("/api/telegram-webhook/:userId", async (req: Request, res: Response): P
       return;
     }
 
-    // Save to Database
+    // Save to Database with Embeddings
+    const crypto = require('crypto');
     if (result.type === "expense" || result.type === "income" || result.type === "both") {
       if (result.transaction) {
-        await prisma.transaction.create({
-          data: {
-            profile_id: userId,
-            amount: result.transaction.amount,
-            category: result.transaction.category,
-            note: result.transaction.note,
-            type: result.transaction.type
-          }
-        });
+        const textToEmbed = \`\${result.transaction.type} of \${result.transaction.amount} in \${result.transaction.category}. Note: \${result.transaction.note}\`;
+        const embedding = await generateEmbedding(textToEmbed);
+        const vectorStr = \`[\${embedding.join(',')}]\`;
+        
+        await prisma.$executeRaw\`
+          INSERT INTO "transactions" (id, profile_id, amount, category, note, type, date, created_at, embedding)
+          VALUES (
+            \${crypto.randomUUID()}, 
+            \${userId}::uuid, 
+            \${result.transaction.amount}, 
+            \${result.transaction.category}, 
+            \${result.transaction.note}, 
+            \${result.transaction.type}, 
+            now(), now(), 
+            \${vectorStr}::vector
+          )
+        \`;
       }
     }
 
     if (result.type === "meal" || result.type === "both") {
       if (result.meal) {
-        await prisma.meal.create({
-          data: {
-            profile_id: userId,
-            name: result.meal.name,
-            calories: result.meal.calories,
-            protein: result.meal.protein,
-            carbs: result.meal.carbs,
-            fat: result.meal.fat,
-            fiber: result.meal.fiber,
-            health_score: result.meal.health_score,
-            meal_type: result.meal.meal_type
-          }
-        });
+        const textToEmbed = \`Ate \${result.meal.name} for \${result.meal.meal_type}. \${result.meal.calories} kcal, \${result.meal.protein}g protein, health score \${result.meal.health_score}.\`;
+        const embedding = await generateEmbedding(textToEmbed);
+        const vectorStr = \`[\${embedding.join(',')}]\`;
+
+        await prisma.$executeRaw\`
+          INSERT INTO "meals" (id, profile_id, name, calories, protein, carbs, fat, fiber, health_score, meal_type, date, created_at, embedding)
+          VALUES (
+            \${crypto.randomUUID()}, 
+            \${userId}::uuid, 
+            \${result.meal.name}, 
+            \${result.meal.calories}, 
+            \${result.meal.protein}, 
+            \${result.meal.carbs}, 
+            \${result.meal.fat}, 
+            \${result.meal.fiber}, 
+            \${result.meal.health_score}, 
+            \${result.meal.meal_type}, 
+            now(), now(), 
+            \${vectorStr}::vector
+          )
+        \`;
       }
     }
 
@@ -458,7 +488,7 @@ app.post("/api/parse-photo", async (req: Request, res: Response): Promise<void> 
 // 2. Chat with FinTrack Data (AI Assist) using Gemini
 app.post("/api/ai-assist", async (req: Request, res: Response): Promise<void> => {
   try {
-    const { question, transactions, meals, profile, chatHistory } = req.body;
+    const { question, profile, chatHistory } = req.body;
 
     if (!question || typeof question !== "string") {
       res.status(400).json({ error: "Question is required." });
@@ -467,48 +497,47 @@ app.post("/api/ai-assist", async (req: Request, res: Response): Promise<void> =>
 
     if (!ai) {
       console.log("Gemini client not initialized, using rule-based AI assist fallback.");
-      const answer = generateLocalAssistAnswer(question, transactions, meals, profile);
-      res.json({ answer, fallback: true });
+      res.json({ answer: "Please configure Gemini API Key for AI Assist.", fallback: true });
       return;
     }
 
-    // Prepare summaries to stay well under token limits but provide solid context
-    const transactionsContext = (transactions || [])
-      .slice(0, 30)
-      .map((t: any) => `- ${t.date}: ₹${t.amount} for ${t.note} [${t.category}] (${t.type})`)
-      .join("\n");
+    const userId = profile?.id;
+    if (!userId) {
+      res.status(400).json({ error: "Profile ID required for personalized AI." });
+      return;
+    }
 
-    const mealsContext = (meals || [])
-      .slice(0, 30)
-      .map((m: any) => `- ${m.date}: ${m.name} (${m.meal_type}) - ${m.calories} kcal, ${m.protein}g protein, health: ${m.health_score}/10`)
-      .join("\n");
+    // 1. Embed the user's question
+    const questionEmbedding = await generateEmbedding(question);
+    const vectorStr = \`[\${questionEmbedding.join(',')}]\`;
 
-    const categorySums = (transactions || [])
-      .filter((t: any) => t.type === "expense")
-      .reduce((acc: Record<string, number>, t: any) => {
-        acc[t.category] = (acc[t.category] || 0) + t.amount;
-        return acc;
-      }, {});
-    
-    const categorySummary = Object.entries(categorySums)
-      .map(([cat, val]) => `${cat}: ₹${val}`)
-      .join(", ");
+    // 2. Perform Vector Similarity Search
+    // Fetch top 15 most relevant transactions
+    const relevantTransactions: any[] = await prisma.$queryRaw\`
+      SELECT amount, category, note, type, date 
+      FROM "transactions" 
+      WHERE profile_id = \${userId}::uuid 
+      ORDER BY embedding <=> \${vectorStr}::vector 
+      LIMIT 15
+    \`;
 
-    const totalSpent = (transactions || [])
-      .filter((t: any) => t.type === "expense")
-      .reduce((sum: number, t: any) => sum + t.amount, 0);
+    // Fetch top 15 most relevant meals
+    const relevantMeals: any[] = await prisma.$queryRaw\`
+      SELECT name, calories, protein, health_score, meal_type, date 
+      FROM "meals" 
+      WHERE profile_id = \${userId}::uuid 
+      ORDER BY embedding <=> \${vectorStr}::vector 
+      LIMIT 15
+    \`;
 
-    const totalIncome = (transactions || [])
-      .filter((t: any) => t.type === "income")
-      .reduce((sum: number, t: any) => sum + t.amount, 0);
+    // Prepare context
+    const transactionsContext = relevantTransactions
+      .map(t => \`- \${t.date}: ₹\${t.amount} for \${t.note} [\${t.category}] (\${t.type})\`)
+      .join("\\n");
 
-    const avgCalories = meals && meals.length > 0 
-      ? Math.round(meals.reduce((sum: number, m: any) => sum + m.calories, 0) / meals.length)
-      : 2000;
-
-    const avgProtein = meals && meals.length > 0
-      ? Math.round(meals.reduce((sum: number, m: any) => sum + m.protein, 0) / meals.length)
-      : 70;
+    const mealsContext = relevantMeals
+      .map(m => \`- \${m.date}: \${m.name} (\${m.meal_type}) - \${m.calories} kcal, \${m.protein}g protein, health: \${m.health_score}/10\`)
+      .join("\\n");
 
     const userProfile = profile || {
       name: "User",
@@ -517,37 +546,29 @@ app.post("/api/ai-assist", async (req: Request, res: Response): Promise<void> =>
       protein_goal: 100,
     };
 
-    const systemPrompt = `
+    const systemPrompt = \`
       You are FinTrack AI, the God-level finance and nutrition expert built into the FinTrack app.
       Your primary purpose is to help the user understand their financial spending and nutritional habits, answer questions based on their real data, and provide concrete, actionable advice.
 
-      Current User: ${userProfile.name}
-      Monthly Expense Budget: ₹${userProfile.monthly_budget}
-      Daily Calorie Goal: ${userProfile.calorie_goal} kcal
-      Daily Protein Goal: ${userProfile.protein_goal}g
+      Current User: \${userProfile.name}
+      Monthly Expense Budget: ₹\${userProfile.monthly_budget}
+      Daily Calorie Goal: \${userProfile.calorie_goal} kcal
+      Daily Protein Goal: \${userProfile.protein_goal}g
 
-      Financial Summary:
-      - Total Spent in Context: ₹${totalSpent}
-      - Total Income in Context: ₹${totalIncome}
-      - Spending Category Totals: ${categorySummary}
+      **RETRIEVED CONTEXT (Top semantic matches for their question):**
+      
+      Relevant Transactions:
+      \${transactionsContext || "No highly relevant transactions found."}
 
-      Nutritional Summary:
-      - Avg Daily Calories logged: ${avgCalories} kcal
-      - Avg Daily Protein logged: ${avgProtein}g
-
-      Recent Transactions (up to 30):
-      ${transactionsContext || "No recent transactions found."}
-
-      Recent Meals (up to 30):
-      ${mealsContext || "No recent meals found."}
+      Relevant Meals:
+      \${mealsContext || "No highly relevant meals found."}
 
       Core Directives:
-      1. Give highly specific answers with concrete numbers (Rupees and Calories) based on the context provided. Avoid generic advice like "you should budget".
-      2. If asked where they spent most, identify the highest category from their real transaction totals and suggest a specific action.
-      3. For food delivery expenses, point out how much they could save per year by reducing delivery frequency.
-      4. Always be supportive, professional, and slightly conversational (friendly tone). Keep the formatting clean and extremely readable.
-      5. Do not hallucinate transactions or meals that aren't in the context. If you don't have enough data, state that gracefully and ask them to log more via Telegram.
-    `;
+      1. Use the RETRIEVED CONTEXT above to answer the user's question accurately.
+      2. Give highly specific answers with concrete numbers based on the context provided.
+      3. Always be supportive, professional, and slightly conversational (friendly tone).
+      4. Do not hallucinate transactions or meals that aren't in the context.
+    \`;
 
     const chatSession = ai.chats.create({
       model: "gemini-3.5-flash",
@@ -555,7 +576,6 @@ app.post("/api/ai-assist", async (req: Request, res: Response): Promise<void> =>
         systemInstruction: systemPrompt,
         temperature: 0.7,
       },
-      // Pass chat history if available
       history: (chatHistory || []).slice(-10).map((h: any) => ({
         role: h.role,
         parts: [{ text: h.content }],
